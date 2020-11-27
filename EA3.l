@@ -6,7 +6,7 @@
 #include <math.h>
 #include <limits.h>
 
-//#include "y.tab.h"
+#include "y.tab.h"
 
 /* CONSTANTES */
 #define ERROR_ID 3
@@ -37,11 +37,10 @@ void debug_print(char*, char *);
 DIGITO			    [0-9]
 CTE		            ({DIGITO})+
 LETRA			    [a-zA-Z]
-ESPACIO             [" "]
+COMILLA             "\""
 CARACTER	        ({DIGITO}|{CTE})+
 ID					{LETRA}({LETRA}|{DIGITO})*
-SIMBOLOS            ["!","#", "$", "%", "&", "/", "?", "¿", "¡", "°", "|", "^", "~", ",", ";", ":", ".", "@",  "_", "-", "¨", "`", "*", "º", "\", "¬"]
-CTE_S		        \"({CARACTER}+|{ESPACIO}|{SIMBOLOS})*\"
+CTE_S               {COMILLA}([^\"])*{COMILLA}
 
 ASIGNA   		    "="
 PARA                "\("
@@ -53,7 +52,6 @@ PYC                 "\;"
 
 %%
 {CTE}               {  debug_print("CTE", yytext); return CTE;                          }
-{ID}                {  debug_print("ID", yytext); return ID;                            }
 {CTE_S}             {  debug_print("CTE_S", yytext); return CTE_S;                      }
 
 {ASIGNA}            {  debug_print("ASIGNA", yytext); return ASIGNA;                    }
@@ -69,6 +67,7 @@ PYC                 "\;"
 "READ"              {  debug_print("READ", yytext); return READ;                        }
 "read"              {  debug_print("READ", yytext); return READ;                        }
 "posicion"			{  debug_print("POSICION", yytext); return POSICION;                }
+{ID}                {  debug_print("ID", yytext); return ID;                            }
 " "
 .                   {printf("%s", yytext); yyerror("ERROR: TOKEN NO RECONOCIDO", 0, 0, 0);}
 
