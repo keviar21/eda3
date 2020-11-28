@@ -13,7 +13,7 @@
 #define ERROR_STR 5
 #define ERROR_INT 7
 #define ERROR_REAL 9
-#define DEBUG_MODE 1
+#define DEBUG_MODE 0
 
 /* VARIABLES */
 FILE    *yyin;

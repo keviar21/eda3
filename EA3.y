@@ -94,51 +94,52 @@ char* tipo_cmp;
 
 S:
     {
-        //printf("\n\nInicia el COMPILADOR\n\n");
+        printf("\n\nInicia el COMPILADOR\n\n");
     } 
     prog {
         //guardarTS();
-        //printf("Regla 1\n");
-        //printf("\nCompilacion OK.\n");
+        printf("Regla 0\n");
+        printf("\nCompilacion OK.\n");
     };
 
 prog: 
-    sent
+    sent { printf("Regla 1\n"); }
     |
-    prog sent
+    prog sent { printf("Regla 2\n"); }
     ;
 
 sent:
-    read
+    read { printf("Regla 3\n"); }
     |
-    write
+    write { printf("Regla 4\n"); }
     |
-    asig
+    asig { printf("Regla 5\n"); }
     ;
 
 read:
-    READ ID;
+    READ ID { printf("Regla 6\n"); }
+    ; 
 
 asig:
-    ID ASIGNA posicion
+    ID ASIGNA posicion { printf("Regla 7\n"); }
     ;
 
 posicion:
-    POSICION PARA ID PYC CA lista CC PARC
+    POSICION PARA ID PYC CA lista CC PARC { printf("Regla 8\n"); }
     |
-    POSICION PARA ID PYC CA CC PARC
+    POSICION PARA ID PYC CA CC PARC { printf("Regla 9\n"); }
     ;
 
 lista:
-    CTE
+    CTE { printf("Regla 10\n"); }
     |
-    lista COMA CTE
+    lista COMA CTE { printf("Regla 11\n"); }
     ;
 
 write:
-    WRITE CTE_S
+    WRITE CTE_S { printf("Regla 12\n"); }
     |
-    WRITE ID
+    WRITE ID { printf("Regla 13\n"); }
     ;
 
 %%
