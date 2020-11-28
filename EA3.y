@@ -36,8 +36,8 @@ typedef struct
 }t_tabla;
 
 void crearTablaTS();
-int insertarTS(const char*, const char*, const char*, int, double, int);
-t_data* crearDatos(const char*, const char*, const char*, int, double, int);
+int insertarTS(const char*, const char*, const char*, int, double);
+t_data* crearDatos(const char*, const char*, const char*, int, double);
 void guardarTS();
 void limpiarConstanteString();
 t_tabla tablaTS;
@@ -65,16 +65,14 @@ char mensajes[100];
 
 %union {
 int tipo_int;
-double tipo_double;
 char* tipo_str;
-char* tipo_cmp;
 }
 
 %start S
 
-%token CTE
-%token ID
-%token CTE_S
+%token <tipo_int>CTE
+%token <tipo_str>ID
+%token <tipo_str>CTE_S
 
 %token ASIGNA
 %token PARA      
@@ -97,7 +95,7 @@ S:
         printf("\n\nInicia el COMPILADOR\n\n");
     } 
     prog {
-        //guardarTS();
+        guardarTS();
         printf("Regla 0\n");
         printf("\nCompilacion OK.\n");
     };
@@ -117,7 +115,9 @@ sent:
     ;
 
 read:
-    READ ID { printf("Regla 6\n"); }
+    READ ID { printf("Regla 6\n");
+    
+            }
     ; 
 
 asig:
@@ -155,14 +155,14 @@ int main(int argc, char *argv[])
     }
     else
     { 
-        //crearTablaTS(); //tablaTS.primero = NULL;
+        crearTablaTS(); //tablaTS.primero = NULL;
         yyparse();
         fclose(yyin);
         return 0;
     }
 }
 
-int insertarTS(const char *nombre, const char *tipo, const char* valString, int valInt, double valDouble, int esConstNombre)
+int insertarTS(const char *nombre, const char *tipo, const char* valString, int valInt, double valDouble)
 {
     t_simbolo *tabla = tablaTS.primero;
     char nombreCTE[50] = "_";
@@ -183,7 +183,7 @@ int insertarTS(const char *nombre, const char *tipo, const char* valString, int 
     }
 
     t_data *data = (t_data*)malloc(sizeof(t_data));
-    //data = crearDatos(nombre, tipo, valString, valInt, valDouble, esConstNombre);
+    data = crearDatos(nombre, tipo, valString, valInt, valDouble);
 
     if(data == NULL)
     {
@@ -212,7 +212,7 @@ int insertarTS(const char *nombre, const char *tipo, const char* valString, int 
     return 0;
 }
 
-/* t_data* crearDatos(const char *nombre, const char *tipo, const char* valString, int valInt, double valDouble, int esConstNombre)
+t_data* crearDatos(const char *nombre, const char *tipo, const char* valString, int valInt, double valDouble)
 {
     char full[50] = "_";
     char aux[20];
@@ -227,80 +227,34 @@ int insertarTS(const char *nombre, const char *tipo, const char* valString, int 
     strcpy(data->tipo, tipo);
 
     //Si es una variable
-    if((strcmp(tipo, "STRING") == 0 || strcmp(tipo, "INTEGER") == 0 || strcmp(tipo, "FLOAT") == 0) && esConstNombre == 0)
+    if(strcmp(tipo, "INTEGER") == 0)
     {
         //Al nombre lo dejo aca porque no lleva _
         data->nombre = (char*)malloc(sizeof(char) * (strlen(nombre) + 1));
         strcpy(data->nombre, nombre);
         return data;
     }
-    else
+    else if(strcmp(tipo, "CTE_S") == 0)
     { 
-        if(esConstNombre == ES_CONST_NOMBRE)
-        {
-            data->nombre = (char*)malloc(sizeof(char) * (strlen(nombre) + 1));
-            strcpy(data->nombre, nombre);
-        }
-
-         //Son constantes: tenemos que agregarlos a la tabla con "_" al comienzo del nombre, hay que agregarle el valor
-        if(strcmp(tipo, "CONST_STR") == 0)
-        {
-            data->valor.valor_str = (char*)malloc(sizeof(char) * strlen(valString) +1);
-            strcpy(data->valor.valor_str, valString);
-            
-            if(esConstNombre == ES_CONST_NOMBRE)
-            {
-                data->nombre = (char*)malloc(sizeof(char) * (strlen(nombre) + 1));
-                strcpy(data->nombre, nombre);
-            }
-            else
-            {
-                data->nombre = (char*)malloc(sizeof(char) * (strlen(valString) + 1));
-                strcat(full, valString);
-                strcpy(data->nombre, full);    
-            }
-
-        }
-        if(strcmp(tipo, "CONST_REAL") == 0)
-        {
-            data->valor.valor_double = valDouble;
-
-            if(esConstNombre == ES_CONST_NOMBRE)
-            {
-                data->nombre = (char*)malloc(sizeof(char) * (strlen(nombre) + 1));
-                strcpy(data->nombre, nombre);
-            }
-            else
-            {
-                sprintf(aux, "%g", valDouble);
-                strcat(full, aux);
-                data->nombre = (char*)malloc(sizeof(char) * strlen(full));
-                strcpy(data->nombre, full);
-            }
-
-        }
-        if(strcmp(tipo, "CONST_INT") == 0)
-        {
-            data->valor.valor_int = valInt;
-
-            if(esConstNombre == ES_CONST_NOMBRE)
-            {
-                data->nombre = (char*)malloc(sizeof(char) * (strlen(nombre) + 1));
-                strcpy(data->nombre, nombre);
-            }
-            else
-            {
-                sprintf(aux, "%d", valInt);
-                strcat(full, aux);
-                data->nombre = (char*)malloc(sizeof(char) * strlen(full));
-                strcpy(data->nombre, full);
-            }
-        }
+        data->valor.valor_str = (char*)malloc(sizeof(char) * strlen(valString) +1);
+        strcpy(data->valor.valor_str, valString);
+        
+        data->nombre = (char*)malloc(sizeof(char) * (strlen(valString) + 1));
+        strcat(full, valString);
+        strcpy(data->nombre, full); 
+        return data;   
+    }
+    else if(strcmp(tipo, "CTE") == 0)
+    {
+        data->valor.valor_int = valInt;
+        sprintf(aux, "%d", valInt);
+        strcat(full, aux);
+        data->nombre = (char*)malloc(sizeof(char) * strlen(full));
+        strcpy(data->nombre, full);
         return data;
-
     }
     return NULL;
-} */
+}
 
 void guardarTS()
 {
@@ -328,23 +282,11 @@ void guardarTS()
         {
             sprintf(linea, "%-50s%-25s%-50s%-ld\n", aux->data.nombre, aux->data.tipo, "--", strlen(aux->data.nombre));
         }
-        else if(strcmp(aux->data.tipo, "CONST_INT") == 0)
+        else if(strcmp(aux->data.tipo, "CTE") == 0)
         {
             sprintf(linea, "%-50s%-25s%-50d%-ld\n", aux->data.nombre, aux->data.tipo, aux->data.valor.valor_int, strlen(aux->data.nombre));
         }
-        else if(strcmp(aux->data.tipo, "FLOAT") ==0)
-        {
-            sprintf(linea, "%-50s%-25s%-50s%-ld\n", aux->data.nombre, aux->data.tipo, "--", strlen(aux->data.nombre));
-        }
-        else if(strcmp(aux->data.tipo, "CONST_REAL") == 0)
-        {
-            sprintf(linea, "%-50s%-25s%-50f%-ld\n", aux->data.nombre, aux->data.tipo, aux->data.valor.valor_double, strlen(aux->data.nombre));
-        }
-        else if(strcmp(aux->data.tipo, "STRING") == 0)
-        {
-            sprintf(linea, "%-50s%-25s%-50s%-ld\n", aux->data.nombre, aux->data.tipo, "--", strlen(aux->data.nombre));
-        }
-        else if(strcmp(aux->data.tipo, "CONST_STR") == 0)
+        else if(strcmp(aux->data.tipo, "CTE_S") == 0)
         {
             sprintf(linea, "%-50s%-25s%-50s%-ld\n", aux->data.nombre, aux->data.tipo, aux->data.valor.valor_str, strlen(aux->data.nombre));
         }

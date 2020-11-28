@@ -51,8 +51,18 @@ COMA                "\,"
 PYC                 "\;"
 
 %%
-{CTE}               {  debug_print("CTE", yytext); return CTE;                          }
-{CTE_S}             {  debug_print("CTE_S", yytext); return CTE_S;                      }
+{CTE}               {   debug_print("CTE", yytext); 
+                        yylval.tipo_int = atoi(yytext);
+						validarInt(yylval.tipo_int);
+                    	insertarTS(yytext, "CTE", "", yylval.tipo_int, 0, 0);
+                        return CTE;                                                     
+                    }
+
+{CTE_S}             {   debug_print("CTE_S", yytext); 
+                        yylval.tipo_str = yytext;
+                    	insertarTS(yylval.tipo_str, "CTE_S", yylval.tipo_str, 0, 0, 0);
+                        return CTE_S;                                                   
+                    }
 
 {ASIGNA}            {  debug_print("ASIGNA", yytext); return ASIGNA;                    }
 {PARA}              {  debug_print("PARA", yytext); return PARA;                        }
@@ -67,7 +77,10 @@ PYC                 "\;"
 "READ"              {  debug_print("READ", yytext); return READ;                        }
 "read"              {  debug_print("READ", yytext); return READ;                        }
 "posicion"			{  debug_print("POSICION", yytext); return POSICION;                }
-{ID}                {  debug_print("ID", yytext); return ID;                            }
+{ID}                {  debug_print("ID", yytext); yylval.tipo_str = yytext; 
+                       insertarTS(yylval.tipo_str, "INTEGER", "", 0, 0, 0);
+                       return ID;  
+                    }
 " "
 .                   {printf("%s", yytext); yyerror("ERROR: TOKEN NO RECONOCIDO", 0, 0, 0);}
 
@@ -81,6 +94,14 @@ int yyerror(char *mensaje, int fila, int ci, int cf)
         printf("\nLinea %d, %d-%d: %s.\n", fila, ci, cf, mensaje);
     
     exit(1);
+}
+
+void validarInt(int numero)
+{
+    if(numero < 0)
+    {
+        yyerror("Error: La lista solo puede tener constantes enteras positivas", 0, 0, 0);
+    }
 }
 
 void debug_print(char* tipo, char *mensaje)
