@@ -15,14 +15,16 @@ FILE  *yyin;
 #define RENGLONES_IMPRESION_ARBOL 70
 #define CARACTERES_RENGLON_ARBOL 350
 
+int contadorString = 0;
+
 /* --- Tabla de simbolos --- */
 typedef struct
 {
         char *nombre;
+        char *nombreASM;
         char *tipo;
         union Valor{
                 int valor_int;
-                double valor_double;
                 char *valor_str;
         }valor;
         int longitud;
@@ -46,6 +48,11 @@ t_data* crearDatos(const char*, const char*, const char*, int, double);
 void guardarTS();
 t_tabla tablaTS;
 
+t_simbolo * getLexema(const char *);
+char* limpiarString(char*, const char*);
+char* reemplazarChar(char*, const char*, const char, const char);
+char* reemplazarString(char*, const char*);
+
 /* --- Arbol --- */
 int num_nodo;
 t_arbol programa;
@@ -58,9 +65,9 @@ t_nodo_arbol* PosicionPtr;
 t_nodo_arbol* ListaPtr;
 t_nodo_arbol* WritePtr;
 
-t_nodo_arbol* IdPtr;
+/* t_nodo_arbol* IdPtr;
 t_nodo_arbol* CtePtr;
-t_nodo_arbol* AcumPtr;
+t_nodo_arbol* AcumPtr; */
 t_simbolo *lexemaAsig;
 t_simbolo *lexemaIzq;
 t_simbolo *lexemaDer;
@@ -150,7 +157,7 @@ write:
 
 %%
 
-/*---- 4. Código ----*/
+/*---- Código ----*/
 
 int main(int argc, char *argv[])
 {
@@ -167,6 +174,8 @@ int main(int argc, char *argv[])
         return 0;
     }
 }
+
+/*---- TS ----*/
 
 int insertarTS(const char *nombre, const char *tipo, const char* valString, int valInt, double valDouble)
 {
@@ -221,7 +230,7 @@ int insertarTS(const char *nombre, const char *tipo, const char* valString, int 
 t_data* crearDatos(const char *nombre, const char *tipo, const char* valString, int valInt, double valDouble)
 {
     char full[50] = "_";
-    char aux[20];
+    char aux[100];
 
     t_data *data = (t_data*)calloc(1, sizeof(t_data));
     if(data == NULL)
@@ -238,16 +247,31 @@ t_data* crearDatos(const char *nombre, const char *tipo, const char* valString, 
         //Al nombre lo dejo aca porque no lleva _
         data->nombre = (char*)malloc(sizeof(char) * (strlen(nombre) + 1));
         strcpy(data->nombre, nombre);
+        data->nombreASM = (char*)malloc(sizeof(char) * (strlen(nombre) + 1));
+        strcpy(data->nombreASM, nombre);
         return data;
     }
     else if(strcmp(tipo, "CTE_S") == 0)
     { 
+        contadorString++;
+
         data->valor.valor_str = (char*)malloc(sizeof(char) * strlen(valString) +1);
         strcpy(data->valor.valor_str, valString);
-        
+
+        char auxString[50];
+        strcpy(full, ""); 
+        strcpy(full, "S_");
+        reemplazarString(auxString, nombre);
+        strcat(full, auxString);
+        char numero[10];
+        sprintf(numero, "_%d", contadorString);
+        strcat(full, numero);
+
+
         data->nombre = (char*)malloc(sizeof(char) * (strlen(valString) + 1));
-        strcat(full, valString);
-        strcpy(data->nombre, full); 
+        data->nombreASM = (char*)malloc(sizeof(char) * (strlen(full) + 1));
+        strcpy(data->nombre, full);
+        strcpy(data->nombreASM, data->nombre);
         return data;   
     }
     else if(strcmp(tipo, "CTE") == 0)
@@ -255,8 +279,11 @@ t_data* crearDatos(const char *nombre, const char *tipo, const char* valString, 
         data->valor.valor_int = valInt;
         sprintf(aux, "%d", valInt);
         strcat(full, aux);
+        data->nombre = (char*)malloc(sizeof(char) * (strlen(full) + 1));
         data->nombre = (char*)malloc(sizeof(char) * strlen(full));
         strcpy(data->nombre, full);
+        data->nombreASM = (char*)malloc(sizeof(char) * (strlen(full) + 1));
+        strcpy(data->nombreASM, full);
         return data;
     }
     return NULL;
@@ -305,4 +332,311 @@ void guardarTS()
 void crearTablaTS()
 {
     tablaTS.primero = NULL;
+}
+
+t_simbolo * getLexema(const char *valor){
+    t_simbolo *lexema;
+    t_simbolo *tablaSimbolos = tablaTS.primero;
+
+    char nombreLimpio[32];
+    limpiarString(nombreLimpio, valor);
+    char nombreCTE[32] = "_";
+    strcat(nombreCTE, nombreLimpio);
+    int esID, esCTE, esASM, esValor =-1;
+
+    while(tablaSimbolos){  
+        esID = strcmp(tablaSimbolos->data.nombre, nombreLimpio);
+        esCTE = strcmp(tablaSimbolos->data.nombre, nombreCTE);
+        esASM = strcmp(tablaSimbolos->data.nombreASM, valor);
+
+        if(strcmp(tablaSimbolos->data.tipo, "CTE_S") == 0)
+        {
+            esValor = strcmp(valor, tablaSimbolos->data.valor.valor_str);
+        }
+
+        if(esID == 0 || esCTE == 0 || esASM == 0 || esValor == 0)
+        { 
+            lexema = tablaSimbolos;
+            return lexema;
+        }
+        tablaSimbolos = tablaSimbolos->next;
+    }
+    return NULL;
+}
+
+/*    Funciones extras    */
+
+char* limpiarString(char* dest, const char* cad)
+{
+    int i, longitud, j=0;
+    longitud = strlen(cad);
+    for(i=0; i<longitud; i++)
+    {
+        if(cad[i] != '"')
+        {
+            dest[j] = cad[i];
+            j++;
+        }
+    }
+    dest[j] = '\0';
+    return dest;
+}
+
+char* reemplazarChar(char* dest, const char* cad, const char viejo, const char nuevo)
+{
+    int i, longitud;
+    longitud = strlen(cad);
+
+    for(i=0; i<longitud; i++)
+    {
+        if(cad[i] == viejo)
+        {
+            dest[i] = nuevo;
+        }
+        else
+        {
+            dest[i] = cad[i];
+        }
+    }
+    dest[i] = '\0';
+    return dest;
+}
+
+char* reemplazarString(char* dest, const char* cad)
+{
+    int i, longitud;
+    longitud = strlen(cad);
+
+    for(i=0; i<longitud; i++)
+    {
+        if((cad[i] >= 'a' && cad[i] <= 'z') || (cad[i] >='A' && cad[i] <= 'Z') || (cad[i] >= '0' && cad[i] <= '9'))
+        {
+            dest[i] = cad[i];
+        }
+        else
+        {
+            dest[i] = '_';
+        }
+    }
+    dest[i] = '\0';
+    return dest;
+}
+
+
+/* --- Árbol --- */
+
+int armar_arbol(t_arbol *pa)
+{
+  t_nodo_arbol *pn = (t_nodo_arbol*) malloc(sizeof(t_nodo_arbol));
+  if(pn == NULL) return SIN_MEMORIA;
+  pn->numero = 0;
+  strcpy(pn->valor,"PRG"); 
+  pn->hijo_izq = NULL; 
+  pn->hijo_der = NULL; 
+  *pa = pn;
+  return OK;
+}
+
+t_nodo_arbol* crear_nodo(int *n, char *valor, int tipo, t_nodo_arbol *hizq, t_nodo_arbol *hder)
+{
+  t_nodo_arbol *pn = (t_nodo_arbol*) malloc (sizeof(t_nodo_arbol));
+  if(pn == NULL) return NULL;
+  pn->numero = *n;
+  strcpy(pn->valor,valor);
+  pn->tipo = tipo; 
+  pn->hijo_izq = hizq; 
+  pn->hijo_der = hder; 
+  *n = *n + 1;
+  return pn;
+}
+
+void recorrer_arbol_posorden(t_arbol *pa, FILE *pf)
+{
+    if(!*pa) 
+        return;
+    if(!&(*pa)->hijo_izq)
+    	return;
+
+    recorrer_arbol_posorden(&(*pa)->hijo_izq,pf);
+    recorrer_arbol_posorden(&(*pa)->hijo_der,pf);
+
+	if(strcmpi((*pa)->valor,"READ")==0){
+        t_simbolo *lexema = getLexema((*pa)->hijo_izq->valor);
+        fprintf(pf, "\tgetFloat \t\t\t\t%s\n\tNEWLINE\n", lexema->data.nombreASM);
+  	}
+
+
+	if(strcmpi((*pa)->valor,"WRITE")==0){
+	    if ((*pa)->hijo_izq->tipo == TIPO_INT)
+	    {
+	      	fprintf(pf,"\tdisplayFloat \t\t\t%s,2\n\tNEWLINE\n",(*pa)->hijo_izq->valor);
+	    }
+	    else if ((*pa)->hijo_izq->tipo == TIPO_STRING)
+	    {
+            t_simbolo *lexema = getLexema((*pa)->hijo_izq->valor);
+	      	fprintf(pf,"\tdisplayString \t\t\t%s\n\tNEWLINE\n",lexema->data.nombreASM);
+	    }
+  	}
+
+    if(strcmpi((*pa)->valor,"ASIGNA")==0){
+        if ((*pa)->hijo_der->tipo == TIPO_INT || (*pa)->hijo_der->tipo == TIPO_CONST_INT)
+        {
+            lexemaDer = getLexema((*pa)->hijo_der->valor);
+            fprintf(pf,"\tfld \t\t\t%s\n\t",lexemaDer->data.nombreASM);
+        }
+        lexemaIzq = getLexema((*pa)->hijo_izq->valor);
+        fprintf(pf,"\tfstp \t\t\t%s\n\t",lexemaIzq->data.nombreASM);
+    }
+
+
+    if(strcmpi((*pa)->valor,"MUL")==0){
+        if (((*pa)->hijo_izq->tipo == TIPO_INT || (*pa)->hijo_izq->tipo == TIPO_CONST_INT) && ((*pa)->hijo_der->tipo == TIPO_INT || (*pa)->hijo_der->tipo == TIPO_CONST_INT))
+        {
+            lexemaIzq = getLexema((*pa)->hijo_izq->valor);
+            lexemaDer = getLexema((*pa)->hijo_der->valor);
+
+            fprintf(pf,"\tfld \t\t\t%s\n\t",lexemaIzq->data.nombreASM);
+            fprintf(pf,"\tfld \t\t\t%s\n\t",lexemaDer->data.nombreASM);
+        }
+        fprintf(pf,"\tfmul \n\t");
+    }
+    
+    if(strcmpi((*pa)->valor,"MAS")==0){
+
+        if (((*pa)->hijo_izq->tipo == TIPO_INT || (*pa)->hijo_izq->tipo == TIPO_CONST_INT) && ((*pa)->hijo_der->tipo == TIPO_INT || (*pa)->hijo_der->tipo == TIPO_CONST_INT))
+        {
+            lexemaIzq = getLexema((*pa)->hijo_izq->valor);
+            lexemaDer = getLexema((*pa)->hijo_der->valor);
+
+            fprintf(pf,"\tfld \t\t\t%s\n\t",lexemaIzq->data.nombreASM);
+            fprintf(pf,"\tfld \t\t\t%s\n\t",lexemaDer->data.nombreASM);
+        }
+        fprintf(pf,"\tfadd \n\t");
+    }
+    
+    if(strcmpi((*pa)->valor,"DIV")==0){
+        if (((*pa)->hijo_izq->tipo == TIPO_INT || (*pa)->hijo_izq->tipo == TIPO_CONST_INT) && ((*pa)->hijo_der->tipo == TIPO_INT || (*pa)->hijo_der->tipo == TIPO_CONST_INT))
+        {
+            lexemaIzq = getLexema((*pa)->hijo_izq->valor);
+            lexemaDer = getLexema((*pa)->hijo_der->valor);
+
+            fprintf(pf,"\tfld \t\t\t%s\n\t",lexemaIzq->data.nombreASM);
+            fprintf(pf,"\tfld \t\t\t%s\n\t",lexemaDer->data.nombreASM);
+        }
+        fprintf(pf,"\tfdiv \n\t");
+    }
+    
+}
+
+void free_nodo(t_nodo_arbol* pn)
+{
+    if(pn == NULL) return;
+    free_nodo(pn->hijo_izq);
+    pn->hijo_izq = NULL;
+    free_nodo(pn->hijo_der);
+    pn->hijo_der = NULL;
+    free(pn);
+    pn = NULL;
+}
+
+void free_arbol(t_arbol *pa)
+{
+    free_nodo(*pa);
+}
+
+t_nodo_arbol* copiar_nodo(int *n, t_nodo_arbol* pn)
+{
+  t_nodo_arbol *pnn = (t_nodo_arbol*) malloc (sizeof(t_nodo_arbol));
+  if(pn == NULL) return NULL;
+  pnn->numero = *n;
+  strcpy(pnn->valor,pn->valor); 
+  pnn->tipo = pn->tipo; 
+  
+  *n = *n + 1; 
+  
+  if(pn->hijo_izq == NULL){
+    pnn->hijo_izq = NULL; 
+  }else{
+      pnn->hijo_izq = copiar_nodo(n,pn->hijo_izq); 
+  }
+  
+  if(pn->hijo_der == NULL){
+    pnn->hijo_der = NULL; 
+  }else{
+      pnn->hijo_der = copiar_nodo(n,pn->hijo_der); 
+  }
+  
+  
+  return pnn;
+}
+
+void copiar_sin_finalizador(char * dest,char * orig) 
+{
+    
+    while(*orig && *dest)
+    {
+        *dest = *orig;
+        orig++;
+        dest++;     
+    }
+}
+
+int _print_t(t_nodo_arbol *tree, int is_left, int offset, int depth, char * s, int max)
+{
+    int i;
+    char b[50];
+    int width = 5;
+
+    if (!tree) return 0;
+
+    sprintf(b, "(%s)", tree->valor);
+
+    int left  = _print_t(tree->hijo_izq,  1, offset, depth + 1, s,max);
+    int right = _print_t(tree->hijo_der, 0, offset + left + width, depth + 1, s,max);
+
+    copiar_sin_finalizador(s + (2 * depth)*max + offset + left,b);
+
+    if (depth && is_left) {
+
+      for (i = 0; i < width + right; i++)
+                copiar_sin_finalizador(s + (2 * depth - 1)*max  + offset + left + width/2 + i,"-"); 
+                copiar_sin_finalizador(s + (2 * depth - 1)*max  + offset + left + width/2 ,"+"); 
+                copiar_sin_finalizador(s + (2 * depth - 1)*max  + offset + left + width + right + width/2 ,"+"); 
+
+    } else if (depth && !is_left) {
+        for (i = 0; i < left + width; i++)
+            copiar_sin_finalizador(s + (2 * depth - 1)*max  + offset - width/2 + i ,"-"); 
+            copiar_sin_finalizador(s + (2 * depth - 1)*max  + offset + left + width/2 ,"+"); 
+    }
+
+    return left + width + right;
+}
+
+int escribir_archivo_txt(t_nodo_arbol *tree)
+{
+    
+  FILE *f = fopen("Intermedia.txt", "w+");
+    if (f == NULL)
+    {
+        puts("Error abriendo archivo de notacion intermedia");
+        exit(1);
+    }
+    int i;
+  char * s = (char *) malloc(sizeof(char) * RENGLONES_IMPRESION_ARBOL * CARACTERES_RENGLON_ARBOL);
+
+  for (i = 0; i < RENGLONES_IMPRESION_ARBOL * CARACTERES_RENGLON_ARBOL; i++)
+  {
+    if(i == 0 || i % (CARACTERES_RENGLON_ARBOL - 1))
+        sprintf(s + i, "%c", ' ');
+    else
+        sprintf(s + i, "%c", '\0');
+  }
+
+    _print_t(tree, 0, 0, 0, s,CARACTERES_RENGLON_ARBOL);
+
+    for (i = 0; i < RENGLONES_IMPRESION_ARBOL; i++)
+    {
+        fprintf(f, "%s\n", s + i*CARACTERES_RENGLON_ARBOL);
+    }    
+    fclose(f);
 }
