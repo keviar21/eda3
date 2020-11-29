@@ -4,16 +4,11 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <stdbool.h>
-#include <conio.h>
 #include "y.tab.h"
-#include "arbol.h"
-#include "structs.h"
 #define YYERROR_VERBOSE 1
 FILE  *yyin;
 
-#define RENGLONES_IMPRESION_ARBOL 70
-#define CARACTERES_RENGLON_ARBOL 350
+//char vecAux[35];
 
 /* --- Tabla de simbolos --- */
 typedef struct
@@ -44,26 +39,25 @@ void crearTablaTS();
 int insertarTS(const char*, const char*, const char*, int, double);
 t_data* crearDatos(const char*, const char*, const char*, int, double);
 void guardarTS();
+void limpiarConstanteString();
 t_tabla tablaTS;
 
-/* --- Arbol --- */
-int num_nodo;
-t_arbol programa;
-t_nodo_arbol* SPtr;
-t_nodo_arbol* ProgPtr;
-t_nodo_arbol* SentPtr;
-t_nodo_arbol* ReadPtr;
-t_nodo_arbol* AsigPtr;
-t_nodo_arbol* PosicionPtr;
-t_nodo_arbol* ListaPtr;
-t_nodo_arbol* WritePtr;
+char idvec[50][50];
+int cantid = 0, i=0, cant_aux=0;
+char vecAux[300];
+char* punt;
+char pos[2];
+char* separador1;
+char nombre[50];
+char tipo_dato[50];
 
-t_nodo_arbol* IdPtr;
-t_nodo_arbol* CtePtr;
-t_nodo_arbol* AcumPtr;
-t_simbolo *lexemaAsig;
-t_simbolo *lexemaIzq;
-t_simbolo *lexemaDer;
+int j=0;
+
+/* --- Validaciones --- */
+int existeID(const char*);
+int esNumero(const char*,char*);
+char* obtenerID(char*);
+char mensajes[100];
 
 %}
 
@@ -305,4 +299,60 @@ void guardarTS()
 void crearTablaTS()
 {
     tablaTS.primero = NULL;
+}
+
+int existeID(const char* id) //y hasta diria que es igual para existeCTE
+{
+    //tengo que ver el tema del _ en el nombre de las cte
+    t_simbolo *tabla = tablaTS.primero;
+    char nombreCTE[50] = "_";
+    strcat(nombreCTE, id);
+    int b1 = 0;
+    int b2 = 0;
+    int j =0;
+    
+    while(j<cant_aux)
+    {
+        b1 = strcmp(idvec[j], id);
+        //b2 = strcmp(tabla->data.nombre, nombreCTE);
+        if(b1 == 0)
+        {
+                return 1;
+        }
+        j++;
+    }
+    return 0;
+}
+
+int esNumero(const char* id,char* error)
+{
+    t_simbolo *tabla = tablaTS.primero;
+    char nombreCTE[50] = "_";
+    strcat(nombreCTE, id);
+
+    while(tabla)
+    {
+        if(strcmp(tabla->data.nombre, id) == 0 || strcmp(tabla->data.nombre, nombreCTE) == 0)
+        {
+            if(strcmp(tabla->data.tipo, "INT")==0 || strcmp(tabla->data.tipo, "FLOAT")==0)
+            {
+                return 1;
+            }
+            else
+            {
+                strcpy(error,"Tipo de dato incorrecto");
+                sprintf(error,"%s%s%s","Error: tipo de dato de la variable '",id,"' incorrecto. Tipos permitidos: int y float");
+                return 0;
+            }
+        }
+        tabla = tabla->next;
+    }
+    sprintf(error, "%s%s%s", "Error: no se declaro la variable '", id, "'");
+    return 0;
+}
+
+char* obtenerID(char* cadena)
+{
+    char* posAsig = strtok(cadena, "=");
+    return cadena;
 }
