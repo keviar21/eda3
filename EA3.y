@@ -65,9 +65,13 @@ t_nodo_arbol* PosicionPtr;
 t_nodo_arbol* ListaPtr;
 t_nodo_arbol* WritePtr;
 t_nodo_arbol* IdPtr;
+t_nodo_arbol* CteSPtr;
 t_nodo_arbol* CtePtr;
-
-//t_nodo_arbol* AcumPtr;
+t_nodo_arbol* PosPtr; //Return de la funcion Posicion
+t_nodo_arbol* IdCompPtr; //este es el id que el usuario quiere encontrar
+t_nodo_arbol* IfPtr; //Puntero al nodo IF
+t_nodo_arbol* IfIzqPtr; //Puntero al nodo IF
+t_nodo_arbol* IfDerPtr; //Puntero al nodo IF
 t_simbolo *lexemaAsig;
 t_simbolo *lexemaIzq;
 t_simbolo *lexemaDer;
@@ -151,19 +155,48 @@ read:
     ; 
 
 asig:
-    ID ASIGNA posicion { printf("Regla 7\n"); }
+    ID ASIGNA posicion { printf("Regla 7\n");
+                         //printf("id: %s", $1);
+                         char *valor = (char*) malloc(sizeof(char)*200);
+                         sprintf(valor,"%s",$1);
+                         valor[strlen(valor)] = '\0';
+                         IdPtr = crear_nodo(&num_nodo, valor, TIPO_INT, NULL, NULL);
+
+                         /* char *posi = (char*) malloc(sizeof(char)*200);
+                         sprintf(posi,"%s",$3);
+                         posi[strlen(valor)] = '\0';
+                         PosPtr = crear_nodo(&num_nodo, posi, TIPO_INT, NULL, NULL); */
+                         PosPtr = crear_nodo(&num_nodo, "@pos", TIPO_INT, ListaPtr, NULL);
+
+                         AsigPtr = crear_nodo(&num_nodo, "ASIGNA", NODO_SIN_TIPO, IdPtr, PosPtr);
+                       }
     ;
 
 posicion:
-    POSICION PARA ID PYC CA lista CC PARC { printf("Regla 8\n"); }
+    POSICION PARA ID PYC CA lista CC PARC { printf("Regla 8\n"); 
+                                            /* char *valor = (char*) malloc(sizeof(char)*200);
+                                            sprintf(valor,"%s",$3);
+                                            valor[strlen(valor)] = '\0';
+                                            IdCompPtr = crear_nodo(&num_nodo, valor, TIPO_INT, NULL, NULL); */
+                                            
+                                          }
     |
     POSICION PARA ID PYC CA CC PARC { printf("Regla 9\n"); }
     ;
 
 lista:
-    CTE { printf("Regla 10\n"); }
+    CTE { printf("Regla 10\n"); 
+          IfIzqPtr = crear_nodo(&num_nodo, "@if_izq", TIPO_INT, NULL, NULL);
+          IfDerPtr = crear_nodo(&num_nodo, "@if_der", TIPO_INT, NULL, NULL);
+          ListaPtr = crear_nodo(&num_nodo, "IF", NODO_SIN_TIPO, IfIzqPtr, IfDerPtr);
+        }
     |
-    lista COMA CTE { printf("Regla 11\n"); }
+    lista COMA CTE { printf("Regla 11\n"); 
+                     IfIzqPtr = crear_nodo(&num_nodo, "@if_izq", TIPO_INT, NULL, NULL);
+                     IfDerPtr = crear_nodo(&num_nodo, "@if_der", TIPO_INT, NULL, NULL);
+                     IfPtr = crear_nodo(&num_nodo, "IF", NODO_SIN_TIPO, IfIzqPtr, IfDerPtr);
+                     ListaPtr = crear_nodo(&num_nodo, ";", NODO_SIN_TIPO, ListaPtr, IfPtr);
+                   }
     ;
 
 write:
@@ -172,8 +205,8 @@ write:
                   sprintf(valor,"%s",$2);
                   valor[strlen(valor)] = '\0';
 
-                  CtePtr = crear_nodo(&num_nodo, valor, TIPO_STRING, NULL, NULL);
-                  WritePtr = crear_nodo(&num_nodo, "WRITE",  NODO_SIN_TIPO, CtePtr, NULL);
+                  CteSPtr = crear_nodo(&num_nodo, valor, TIPO_STRING, NULL, NULL);
+                  WritePtr = crear_nodo(&num_nodo, "WRITE",  NODO_SIN_TIPO, CteSPtr, NULL);
                 }
     |
     WRITE ID { printf("Regla 13\n"); 
