@@ -52,6 +52,7 @@ t_simbolo * getLexema(const char *);
 char* limpiarString(char*, const char*);
 char* reemplazarChar(char*, const char*, const char, const char);
 char* reemplazarString(char*, const char*);
+char* obtenerID(char*);
 
 /* --- Arbol --- */
 int num_nodo;
@@ -159,6 +160,8 @@ asig:
                          //printf("id: %s", $1);
                          char *valor = (char*) malloc(sizeof(char)*200);
                          sprintf(valor,"%s",$1);
+                         obtenerID(valor);
+                         limpiarString(valor,valor);
                          valor[strlen(valor)] = '\0';
                          IdPtr = crear_nodo(&num_nodo, valor, TIPO_INT, NULL, NULL);
 
@@ -491,6 +494,18 @@ char* reemplazarString(char* dest, const char* cad)
     return dest;
 }
 
+char* obtenerID(char* cadena)
+{
+    char* posAsig = strtok(cadena, "=");
+    int i;
+
+    for(i=0 ; i<strlen(cadena) ; i++) {
+        if(cadena[i] == ' ') {
+            cadena[i] = '\0';
+        }
+    }
+    return cadena;
+}
 
 /* --- Árbol --- */
 
