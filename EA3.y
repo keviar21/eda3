@@ -64,10 +64,10 @@ t_nodo_arbol* AsigPtr;
 t_nodo_arbol* PosicionPtr;
 t_nodo_arbol* ListaPtr;
 t_nodo_arbol* WritePtr;
-
-/* t_nodo_arbol* IdPtr;
+t_nodo_arbol* IdPtr;
 t_nodo_arbol* CtePtr;
-t_nodo_arbol* AcumPtr; */
+
+//t_nodo_arbol* AcumPtr;
 t_simbolo *lexemaAsig;
 t_simbolo *lexemaIzq;
 t_simbolo *lexemaDer;
@@ -108,28 +108,45 @@ S:
         printf("\n\nInicia el COMPILADOR\n\n");
     } 
     prog {
+        SPtr = ProgPtr;
+        programa = SPtr;
         guardarTS();
         printf("Regla 0\n");
         printf("\nCompilacion OK.\n");
     };
 
 prog: 
-    sent { printf("Regla 1\n"); }
+    sent { printf("Regla 1\n"); 
+           ProgPtr = SentPtr;
+         }
     |
-    prog sent { printf("Regla 2\n"); }
+    prog sent { printf("Regla 2\n"); 
+                ProgPtr = crear_nodo(&num_nodo, "SENT", NODO_SIN_TIPO, ProgPtr, SentPtr);
+              }
     ;
 
 sent:
-    read { printf("Regla 3\n"); }
+    read { printf("Regla 3\n"); 
+           SentPtr = ReadPtr;
+         }
     |
-    write { printf("Regla 4\n"); }
+    write { printf("Regla 4\n"); 
+            SentPtr = WritePtr;
+          }
     |
-    asig { printf("Regla 5\n"); }
+    asig { printf("Regla 5\n"); 
+           SentPtr = AsigPtr;
+         }
     ;
 
 read:
     READ ID { printf("Regla 6\n");
-    
+              char *valor = (char*) malloc(sizeof(char)*200);
+              sprintf(valor,"%s",$2);
+              valor[strlen(valor)] = '\0';
+
+              IdPtr = crear_nodo(&num_nodo, valor, TIPO_INT, NULL, NULL);
+              ReadPtr = crear_nodo(&num_nodo, "READ", NODO_SIN_TIPO, IdPtr, NULL);
             }
     ; 
 
@@ -150,9 +167,23 @@ lista:
     ;
 
 write:
-    WRITE CTE_S { printf("Regla 12\n"); }
+    WRITE CTE_S { printf("Regla 12\n"); 
+                  char *valor = (char*) malloc(sizeof(char)*200);
+                  sprintf(valor,"%s",$2);
+                  valor[strlen(valor)] = '\0';
+
+                  CtePtr = crear_nodo(&num_nodo, valor, TIPO_STRING, NULL, NULL);
+                  WritePtr = crear_nodo(&num_nodo, "WRITE",  NODO_SIN_TIPO, CtePtr, NULL);
+                }
     |
-    WRITE ID { printf("Regla 13\n"); }
+    WRITE ID { printf("Regla 13\n"); 
+               char *valor = (char*) malloc(sizeof(char)*200);
+               sprintf(valor,"%s",$2);
+               valor[strlen(valor)] = '\0';
+
+               IdPtr = crear_nodo(&num_nodo, valor, TIPO_INT, NULL, NULL);
+               WritePtr = crear_nodo(&num_nodo, "WRITE", NODO_SIN_TIPO, IdPtr, NULL);
+             }
     ;
 
 %%
@@ -168,8 +199,13 @@ int main(int argc, char *argv[])
     }
     else
     { 
+        armar_arbol(&programa);
+        num_nodo = 1;
+
         crearTablaTS(); //tablaTS.primero = NULL;
         yyparse();
+        escribir_archivo_txt(programa);
+        free_arbol(&programa);
         fclose(yyin);
         return 0;
     }
