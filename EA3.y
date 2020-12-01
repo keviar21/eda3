@@ -16,6 +16,7 @@ FILE  *yyin;
 #define CARACTERES_RENGLON_ARBOL 1000
 
 int contadorString = 0;
+int endIf = 1;
 
 /* --- Tabla de simbolos --- */
 typedef struct
@@ -669,6 +670,32 @@ void recorrer_arbol_posorden(t_arbol *pa, FILE *pf)
             fprintf(pf,"fstp %s\n\n",(*pa)->hijo_izq->valor);
         }
     }
+
+    if(strcmpi((*pa)->valor,"IF")==0){
+        fprintf(pf, "branch%d:\n\n", endIf);
+        endIf = endIf + 1; 
+  	}
+
+    if(strcmpi((*pa)->valor,"CMP")==0){
+
+        if ((*pa)->hijo_der->tipo == TIPO_INT ) {
+            lexemaDer = getLexema((*pa)->hijo_der->valor);
+            fprintf(pf,"fld %s\n",lexemaDer->data.nombreASM);
+        }
+        else {
+            fprintf(pf,"fld %s\n",(*pa)->hijo_der->valor);
+        }
+
+        if ((*pa)->hijo_izq->tipo == TIPO_INT ) {
+            lexemaIzq = getLexema((*pa)->hijo_izq->valor);
+            fprintf(pf,"fld %s\n",lexemaIzq->data.nombreASM);
+        }
+        else {
+            fprintf(pf,"fld %s\n",(*pa)->hijo_izq->valor);
+        }
+        fprintf(pf, "fxch\nfcom\nfstsw AX\nsahf\n");
+        fprintf(pf,"jne branch%d\n\n", endIf);
+  	}
 
 
     /* if(strcmpi((*pa)->valor,"MUL")==0){

@@ -37,23 +37,83 @@ NEWLINE
 getFloat pivot
 NEWLINE
 
-fld @aux
-fstp @pos
+fld _10
+fld @idComp
+fxch
+fcom
+fstsw AX
+sahf
+jne branch1
 
 fld @aux
 fstp @pos
 
-fld @aux
-fstp @pos
+branch1:
+
+fld _20
+fld @idComp
+fxch
+fcom
+fstsw AX
+sahf
+jne branch2
 
 fld @aux
 fstp @pos
 
-fld @aux
-fstp @pos
+branch2:
+
+fld _30
+fld @idComp
+fxch
+fcom
+fstsw AX
+sahf
+jne branch3
 
 fld @aux
 fstp @pos
+
+branch3:
+
+fld _40
+fld @idComp
+fxch
+fcom
+fstsw AX
+sahf
+jne branch4
+
+fld @aux
+fstp @pos
+
+branch4:
+
+fld _5
+fld @idComp
+fxch
+fcom
+fstsw AX
+sahf
+jne branch5
+
+fld @aux
+fstp @pos
+
+branch5:
+
+fld _4
+fld @idComp
+fxch
+fcom
+fstsw AX
+sahf
+jne branch6
+
+fld @aux
+fstp @pos
+
+branch6:
 
 fld pivot
 fstp @idComp
