@@ -22,7 +22,6 @@ S__Elemento_encontrado_en_posicion____2           db        "Elemento encontrado
 @idComp        dd             -1.0           ; pivot ingresado por el usuario
 @aux           dd             0.0            ; posicion de la lista en la que voy
 @1             dd             1.0            ; constante para incrementar @aux
-@unoNeg        dd             -1.0           ; constante para confirmas que el elemento no esta en la lista
 @fin           dd             1000.0         ; etiqueta al fin del programa
 @esMenor       db             "El pivot ingresado debe ser mayor a 0"; mensaje del sistema
 @perdido       db             "El pivot no se encuentra en la lista"; mensaje del sistema

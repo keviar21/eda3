@@ -241,15 +241,7 @@ posicion:
                                             AsigPtr = crear_nodo(&num_nodo, "ASIGNA", NODO_SIN_TIPO, IdCompPtr, IdPtr);
                                           }
     |
-    POSICION PARA ID PYC CA CC PARC { printf("Regla 9\n"); 
-
-                                      AuxSPtr = crear_nodo(&num_nodo, "@vacia", AUX, NULL, NULL);
-
-                                      WritePtr = crear_nodo(&num_nodo, "WRITE", NODO_SIN_TIPO, AuxSPtr, NULL);
-                                      FinPtr = crear_nodo(&num_nodo, "@fin", AUX, NULL, NULL);
-
-                                      ListaPtr = crear_nodo(&num_nodo, "BF", NODO_SIN_TIPO, WritePtr, FinPtr);
-                                    }
+    POSICION PARA ID PYC CA CC PARC { printf("Regla 9\n"); }
     ;
 
 lista:
@@ -950,7 +942,6 @@ void crearSeccionData(FILE *archAssembler){
     fprintf(archAssembler, "%-15s%-15s%-15s%-15s\n", "@idComp", "dd", "-1.0", "; pivot ingresado por el usuario");
     fprintf(archAssembler, "%-15s%-15s%-15s%-15s\n", "@aux", "dd", "0.0", "; posicion de la lista en la que voy");
     fprintf(archAssembler, "%-15s%-15s%-15s%-15s\n", "@1", "dd", "1.0", "; constante para incrementar @aux");
-    fprintf(archAssembler, "%-15s%-15s%-15s%-15s\n", "@unoNeg", "dd", "-1.0", "; constante para confirmas que el elemento no esta en la lista");
     fprintf(archAssembler, "%-15s%-15s%-15s%-15s\n", "@fin", "dd", "1000.0", "; etiqueta al fin del programa");
 
     fprintf(archAssembler, "%-15s%-15s%-15s%-15s\n", "@esMenor", "db", "\"El pivot ingresado debe ser mayor a 0\"", "; mensaje del sistema");
