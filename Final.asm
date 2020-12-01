@@ -37,6 +37,10 @@ NEWLINE
 getFloat pivot
 NEWLINE
 
+fld @1
+fld @aux
+fadd
+
 fld _10
 fld @idComp
 fxch
@@ -48,7 +52,13 @@ jne branch1
 fld @aux
 fstp @pos
 
+jmp branch500
+
 branch1:
+
+fld @1
+fld @aux
+fadd
 
 fld _20
 fld @idComp
@@ -61,7 +71,13 @@ jne branch2
 fld @aux
 fstp @pos
 
+jmp branch500
+
 branch2:
+
+fld @1
+fld @aux
+fadd
 
 fld _30
 fld @idComp
@@ -74,7 +90,13 @@ jne branch3
 fld @aux
 fstp @pos
 
+jmp branch500
+
 branch3:
+
+fld @1
+fld @aux
+fadd
 
 fld _40
 fld @idComp
@@ -87,7 +109,13 @@ jne branch4
 fld @aux
 fstp @pos
 
+jmp branch500
+
 branch4:
+
+fld @1
+fld @aux
+fadd
 
 fld _5
 fld @idComp
@@ -100,7 +128,13 @@ jne branch5
 fld @aux
 fstp @pos
 
+jmp branch500
+
 branch5:
+
+fld @1
+fld @aux
+fadd
 
 fld _4
 fld @idComp
@@ -113,10 +147,14 @@ jne branch6
 fld @aux
 fstp @pos
 
+jmp branch500
+
 branch6:
 
 fld pivot
 fstp @idComp
+
+branch500:
 
 fld @pos
 fstp resul

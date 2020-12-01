@@ -17,6 +17,7 @@ FILE  *yyin;
 
 int contadorString = 0;
 int endIf = 1;
+int x = 500;
 
 /* --- Tabla de simbolos --- */
 typedef struct
@@ -696,6 +697,24 @@ void recorrer_arbol_posorden(t_arbol *pa, FILE *pf)
         fprintf(pf, "fxch\nfcom\nfstsw AX\nsahf\n");
         fprintf(pf,"jne branch%d\n\n", endIf);
   	}
+
+    if(strcmpi((*pa)->valor,"+")==0){
+        
+        fprintf(pf,"fld %s\n",(*pa)->hijo_der->valor);
+        fprintf(pf,"fld %s\n",(*pa)->hijo_izq->valor);
+        fprintf(pf,"fadd\n\n");
+    }
+
+    if(strcmpi((*pa)->valor,"BI")==0){
+        fprintf(pf,"jmp branch%d\n\n",x);
+    }
+
+    if(strcmp((*pa)->valor,";")==0){
+        //printf("encontre una coma\n");
+        if((*pa)->hijo_izq->tipo == AUX) {
+            fprintf(pf,"branch%d:\n\n",x);
+        }
+    }
 
 
     /* if(strcmpi((*pa)->valor,"MUL")==0){
