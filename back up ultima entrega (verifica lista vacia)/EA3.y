@@ -83,14 +83,9 @@ t_nodo_arbol* BiPtr; //puntero al salto incondicional
 t_nodo_arbol* BLEPtr; //salto para ver si el pivot ingresado es menor que 1
 t_nodo_arbol* SumPunt; //puntero al simbolo "+"
 t_nodo_arbol* UnoPtr; //1 para sumarle al pos
-t_nodo_arbol* MenosUnoPtr; //para hacer la comparacion final
 t_nodo_arbol* AuxPtr; //va a indicar en que posicion de la lista estoy - se inicializa en 1
 t_nodo_arbol* FinPtr; //puntero al nodo que dice que saltes al fin del programa
 t_nodo_arbol* AuxSPtr; //puntero que me sirve para crear nodos con auxiliares string internar
-t_nodo_arbol* IfPtrAux; // lo usare para la validacion final
-t_nodo_arbol* IfIzqPtrAux; // lo usare para la validacion final
-t_nodo_arbol* IfDerPtrAux; // lo usare para la validacion final
-t_nodo_arbol* WritePtrAux; // lo usare para la validacion final
 
 t_simbolo *lexemaAsig;
 t_simbolo *lexemaIzq;
@@ -337,24 +332,8 @@ write:
                sprintf(valor,"%s",$2);
                valor[strlen(valor)] = '\0';
 
-               //derecha de ";"
                IdPtr = crear_nodo(&num_nodo, valor, TIPO_INT, NULL, NULL);
                WritePtr = crear_nodo(&num_nodo, "WRITE", NODO_SIN_TIPO, IdPtr, NULL);
-
-               //izquierda de ";"
-               AuxSPtr = crear_nodo(&num_nodo, "@perdido", AUX, NULL, NULL);
-               WritePtrAux = crear_nodo(&num_nodo, "WRITE", NODO_SIN_TIPO, AuxSPtr, NULL);
-
-               FinPtr = crear_nodo(&num_nodo, "@fin", AUX, NULL, NULL);
-               BiPtr = crear_nodo(&num_nodo, "BF", NODO_SIN_TIPO, WritePtrAux, FinPtr);
-
-               MenosUnoPtr = crear_nodo(&num_nodo, "@unoNeg", AUX, NULL, NULL);
-               IdPtr = crear_nodo(&num_nodo, valor, TIPO_INT, NULL, NULL);
-               CmpPtr = crear_nodo(&num_nodo, "CMP", NODO_SIN_TIPO, IdPtr, MenosUnoPtr);
-
-               IfPtr = crear_nodo(&num_nodo, "IF", NODO_SIN_TIPO, CmpPtr, BiPtr);
-
-               WritePtr = crear_nodo(&num_nodo, ";", NODO_SIN_TIPO, IfPtr, WritePtr);
              }
     ;
 

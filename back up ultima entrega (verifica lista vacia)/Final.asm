@@ -185,21 +185,6 @@ fstp resul
 displayString S__Elemento_encontrado_en_posicion____2
 NEWLINE
 
-fld @unoNeg
-fld resul
-fxch
-fcom
-fstsw AX
-sahf
-jne branch8
-
-displayString @perdido
-NEWLINE
-
-jmp branch1000
-
-branch8:
-
 displayFloat resul,2
 NEWLINE
 
