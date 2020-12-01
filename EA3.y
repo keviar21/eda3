@@ -175,7 +175,7 @@ read:
 asig:
     ID ASIGNA posicion { printf("Regla 7\n");
                      
-                         SaltoPtr = crear_nodo(&num_nodo, "@salto", TIPO_INT, NULL, NULL);
+                         SaltoPtr = crear_nodo(&num_nodo, "@salto", AUX, NULL, NULL);
 
                          AsigPtr = crear_nodo(&num_nodo, ";", NODO_SIN_TIPO, SaltoPtr, AsigPtr);
 
@@ -190,7 +190,7 @@ asig:
                          sprintf(posi,"%s",$3);
                          posi[strlen(valor)] = '\0';
                          PosPtr = crear_nodo(&num_nodo, posi, TIPO_INT, NULL, NULL); */
-                         PosPtr = crear_nodo(&num_nodo, "@pos", TIPO_INT, ListaPtr, AsigPtr);
+                         PosPtr = crear_nodo(&num_nodo, "@pos", AUX, ListaPtr, AsigPtr);
 
                          AsigPtr = crear_nodo(&num_nodo, "ASIGNA", NODO_SIN_TIPO, IdPtr, PosPtr);
                        }
@@ -203,7 +203,7 @@ posicion:
                                             limpiarPivot(valor);
                                             valor[strlen(valor)] = '\0';
                                             IdPtr = crear_nodo(&num_nodo, valor, TIPO_INT, NULL, NULL);
-                                            IdCompPtr = crear_nodo(&num_nodo, "@idComp", TIPO_INT, NULL, NULL);
+                                            IdCompPtr = crear_nodo(&num_nodo, "@idComp", AUX, NULL, NULL);
                                             AsigPtr = crear_nodo(&num_nodo, "ASIGNA", NODO_SIN_TIPO, IdCompPtr, IdPtr);
                                           }
     |
@@ -215,12 +215,12 @@ lista:
           char cad[20];
 
           //sumatoria del aux
-          AuxPtr = crear_nodo(&num_nodo, "@aux", TIPO_INT, NULL, NULL);
-          UnoPtr = crear_nodo(&num_nodo, "@1", TIPO_INT, NULL, NULL);
+          AuxPtr = crear_nodo(&num_nodo, "@aux", AUX, NULL, NULL);
+          UnoPtr = crear_nodo(&num_nodo, "@1", AUX, NULL, NULL);
           SumPunt = crear_nodo(&num_nodo, "+", SUMA, AuxPtr, UnoPtr);
 
           //lado izquierdo (condicion)
-          IfIzqPtr = crear_nodo(&num_nodo, "@idComp", TIPO_INT, SumPunt, NULL);
+          IfIzqPtr = crear_nodo(&num_nodo, "@idComp", AUX, SumPunt, NULL);
 
           char *valor = (char*) malloc(sizeof(char)*200);
           itoa($1, cad, 10);
@@ -230,11 +230,11 @@ lista:
           CmpPtr = crear_nodo(&num_nodo, "CMP", NODO_SIN_TIPO, IfIzqPtr, IfDerPtr);
 
           //lado derecho (guardar pos y salto)
-          PosPtr = crear_nodo(&num_nodo, "@pos", TIPO_INT, NULL, NULL);
-          AuxPtr = crear_nodo(&num_nodo, "@aux", TIPO_INT, NULL, NULL);
+          PosPtr = crear_nodo(&num_nodo, "@pos", AUX, NULL, NULL);
+          AuxPtr = crear_nodo(&num_nodo, "@aux", AUX, NULL, NULL);
           AsigPtr = crear_nodo(&num_nodo, "ASIGNA", NODO_SIN_TIPO, PosPtr, AuxPtr);
 
-          SaltoPtr = crear_nodo(&num_nodo, "@salto", TIPO_INT, NULL, NULL);
+          SaltoPtr = crear_nodo(&num_nodo, "@salto", AUX, NULL, NULL);
 
           BiPtr = crear_nodo(&num_nodo, "BI", NODO_SIN_TIPO, AsigPtr, SaltoPtr);
           
@@ -246,12 +246,12 @@ lista:
                      char cad[20];
 
                      //sumatoria del aux
-                     AuxPtr = crear_nodo(&num_nodo, "@aux", TIPO_INT, NULL, NULL);
-                     UnoPtr = crear_nodo(&num_nodo, "@1", TIPO_INT, NULL, NULL);
+                     AuxPtr = crear_nodo(&num_nodo, "@aux", AUX, NULL, NULL);
+                     UnoPtr = crear_nodo(&num_nodo, "@1", AUX, NULL, NULL);
                      SumPunt = crear_nodo(&num_nodo, "+", SUMA, AuxPtr, UnoPtr);
 
                      //lado izquierdo (condicion)
-                     IfIzqPtr = crear_nodo(&num_nodo, "@idComp", TIPO_INT, SumPunt, NULL);
+                     IfIzqPtr = crear_nodo(&num_nodo, "@idComp", AUX, SumPunt, NULL);
 
                      char *valor = (char*) malloc(sizeof(char)*200);
                      itoa($3, cad, 10);
@@ -261,11 +261,11 @@ lista:
                      CmpPtr = crear_nodo(&num_nodo, "CMP", NODO_SIN_TIPO, IfIzqPtr, IfDerPtr);
 
                      //lado derecho (guardar pos y salto)
-                     PosPtr = crear_nodo(&num_nodo, "@pos", TIPO_INT, NULL, NULL);
-                     AuxPtr = crear_nodo(&num_nodo, "@aux", TIPO_INT, NULL, NULL);
+                     PosPtr = crear_nodo(&num_nodo, "@pos", AUX, NULL, NULL);
+                     AuxPtr = crear_nodo(&num_nodo, "@aux", AUX, NULL, NULL);
                      AsigPtr = crear_nodo(&num_nodo, "ASIGNA", NODO_SIN_TIPO, PosPtr, AuxPtr);
 
-                     SaltoPtr = crear_nodo(&num_nodo, "@salto", TIPO_INT, NULL, NULL);
+                     SaltoPtr = crear_nodo(&num_nodo, "@salto", AUX, NULL, NULL);
 
                      BiPtr = crear_nodo(&num_nodo, "BI", NODO_SIN_TIPO, AsigPtr, SaltoPtr);
 
@@ -311,9 +311,11 @@ int main(int argc, char *argv[])
         armar_arbol(&programa);
         num_nodo = 1;
 
-        crearTablaTS(); //tablaTS.primero = NULL;
         yyparse();
+
+        //system("Pause");
         escribir_archivo_txt(programa);
+        crearTablaTS(); //tablaTS.primero = NULL;
         free_arbol(&programa);
         fclose(yyin);
         return 0;
@@ -632,34 +634,44 @@ void recorrer_arbol_posorden(t_arbol *pa, FILE *pf)
 
 	if(strcmpi((*pa)->valor,"READ")==0){
         t_simbolo *lexema = getLexema((*pa)->hijo_izq->valor);
-        fprintf(pf, "\tgetFloat \t\t\t\t%s\n\tNEWLINE\n", lexema->data.nombreASM);
+        fprintf(pf, "getFloat %s\nNEWLINE\n\n", lexema->data.nombreASM);
   	}
 
 
 	if(strcmpi((*pa)->valor,"WRITE")==0){
 	    if ((*pa)->hijo_izq->tipo == TIPO_INT)
 	    {
-	      	fprintf(pf,"\tdisplayFloat \t\t\t%s,2\n\tNEWLINE\n",(*pa)->hijo_izq->valor);
+	      	fprintf(pf,"displayFloat %s,2\nNEWLINE\n\n",(*pa)->hijo_izq->valor);
 	    }
 	    else if ((*pa)->hijo_izq->tipo == TIPO_STRING)
 	    {
             t_simbolo *lexema = getLexema((*pa)->hijo_izq->valor);
-	      	fprintf(pf,"\tdisplayString \t\t\t%s\n\tNEWLINE\n",lexema->data.nombreASM);
+	      	fprintf(pf,"displayString %s\nNEWLINE\n\n",lexema->data.nombreASM);
 	    }
   	}
 
     if(strcmpi((*pa)->valor,"ASIGNA")==0){
-        if ((*pa)->hijo_der->tipo == TIPO_INT || (*pa)->hijo_der->tipo == TIPO_CONST_INT)
-        {
+        //printf("encontre un asigna\n");
+        
+        if ((*pa)->hijo_der->tipo == TIPO_INT ) {
             lexemaDer = getLexema((*pa)->hijo_der->valor);
-            fprintf(pf,"\tfld \t\t\t%s\n\t",lexemaDer->data.nombreASM);
+            fprintf(pf,"fld %s\n",lexemaDer->data.nombreASM);
         }
-        lexemaIzq = getLexema((*pa)->hijo_izq->valor);
-        fprintf(pf,"\tfstp \t\t\t%s\n\t",lexemaIzq->data.nombreASM);
+        else {
+            fprintf(pf,"fld %s\n",(*pa)->hijo_der->valor);
+        }
+
+        if ((*pa)->hijo_izq->tipo == TIPO_INT ) {
+            lexemaIzq = getLexema((*pa)->hijo_izq->valor);
+            fprintf(pf,"fstp %s\n\n",lexemaIzq->data.nombreASM);
+        }
+        else {
+            fprintf(pf,"fstp %s\n\n",(*pa)->hijo_izq->valor);
+        }
     }
 
 
-    if(strcmpi((*pa)->valor,"MUL")==0){
+    /* if(strcmpi((*pa)->valor,"MUL")==0){
         if (((*pa)->hijo_izq->tipo == TIPO_INT || (*pa)->hijo_izq->tipo == TIPO_CONST_INT) && ((*pa)->hijo_der->tipo == TIPO_INT || (*pa)->hijo_der->tipo == TIPO_CONST_INT))
         {
             lexemaIzq = getLexema((*pa)->hijo_izq->valor);
@@ -669,9 +681,9 @@ void recorrer_arbol_posorden(t_arbol *pa, FILE *pf)
             fprintf(pf,"\tfld \t\t\t%s\n\t",lexemaDer->data.nombreASM);
         }
         fprintf(pf,"\tfmul \n\t");
-    }
+    } */
     
-    if(strcmpi((*pa)->valor,"MAS")==0){
+    /* if(strcmpi((*pa)->valor,"MAS")==0){
 
         if (((*pa)->hijo_izq->tipo == TIPO_INT || (*pa)->hijo_izq->tipo == TIPO_CONST_INT) && ((*pa)->hijo_der->tipo == TIPO_INT || (*pa)->hijo_der->tipo == TIPO_CONST_INT))
         {
@@ -682,9 +694,9 @@ void recorrer_arbol_posorden(t_arbol *pa, FILE *pf)
             fprintf(pf,"\tfld \t\t\t%s\n\t",lexemaDer->data.nombreASM);
         }
         fprintf(pf,"\tfadd \n\t");
-    }
+    } */
     
-    if(strcmpi((*pa)->valor,"DIV")==0){
+    /* if(strcmpi((*pa)->valor,"DIV")==0){
         if (((*pa)->hijo_izq->tipo == TIPO_INT || (*pa)->hijo_izq->tipo == TIPO_CONST_INT) && ((*pa)->hijo_der->tipo == TIPO_INT || (*pa)->hijo_der->tipo == TIPO_CONST_INT))
         {
             lexemaIzq = getLexema((*pa)->hijo_izq->valor);
@@ -694,7 +706,7 @@ void recorrer_arbol_posorden(t_arbol *pa, FILE *pf)
             fprintf(pf,"\tfld \t\t\t%s\n\t",lexemaDer->data.nombreASM);
         }
         fprintf(pf,"\tfdiv \n\t");
-    }
+    } */
     
 }
 
@@ -819,9 +831,9 @@ void generarAssembler(){
     crearHeader(archAssembler);
     crearSeccionData(archAssembler);
     crearSeccionCode(archAssembler);
-
-    //recorrer_arbol_posorden(&programa, archAssembler);
-
+    printf("antes del arbol\n");
+    recorrer_arbol_posorden(&programa, archAssembler);
+    printf("despues del arbol\n");
     crearFooter(archAssembler);
     fclose(archAssembler);
 }

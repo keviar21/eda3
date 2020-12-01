@@ -31,6 +31,42 @@ mov AX,@DATA                  ; Inicializa el segmento de datos
 mov DS,AX                     
 mov ES,AX                     
 
+displayString S__Ingrese_un_valor_pivot_mayor_o_igual_a_1____1
+NEWLINE
+
+getFloat pivot
+NEWLINE
+
+fld @aux
+fstp @pos
+
+fld @aux
+fstp @pos
+
+fld @aux
+fstp @pos
+
+fld @aux
+fstp @pos
+
+fld @aux
+fstp @pos
+
+fld @aux
+fstp @pos
+
+fld pivot
+fstp @idComp
+
+fld @pos
+fstp resul
+
+displayString S__Elemento_encontrado_en_posicion____2
+NEWLINE
+
+displayFloat resul,2
+NEWLINE
+
 
 mov AX,4C00h                  ; Indica que debe finalizar la ejecución
 int 21h
