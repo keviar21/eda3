@@ -1,0 +1,11 @@
+NOMBRE                                            TIPODATO                 VALOR                                             LONGITUD                      
+S__Ingrese_un_valor_pivot_mayor_o_igual_a_1____1  CTE_S                    "Ingrese un valor pivot mayor o igual a 1: "      48
+pivot                                             INTEGER                  --                                                5
+resul                                             INTEGER                  --                                                5
+_10                                               CTE                      10                                                3
+_20                                               CTE                      20                                                3
+_30                                               CTE                      30                                                3
+_40                                               CTE                      40                                                3
+_5                                                CTE                      5                                                 2
+_4                                                CTE                      4                                                 2
+S__Elemento_encontrado_en_posicion____2           CTE_S                    "Elemento encontrado en posicion: "               39

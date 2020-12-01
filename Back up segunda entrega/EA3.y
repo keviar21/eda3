@@ -12,8 +12,8 @@
 #define YYERROR_VERBOSE 1
 FILE  *yyin;
 
-#define RENGLONES_IMPRESION_ARBOL 500
-#define CARACTERES_RENGLON_ARBOL 1000
+#define RENGLONES_IMPRESION_ARBOL 150
+#define CARACTERES_RENGLON_ARBOL 500
 
 int contadorString = 0;
 
@@ -85,13 +85,6 @@ t_simbolo *lexemaAsig;
 t_simbolo *lexemaIzq;
 t_simbolo *lexemaDer;
 
-/* --- Assembler --- */
-void generarAssembler();
-void crearHeader(FILE *);
-void crearSeccionData(FILE *);
-void crearSeccionCode(FILE *);
-void crearFooter(FILE *);
-
 %}
 
 /*---- 2. Tokens - Start ----*/
@@ -130,8 +123,6 @@ S:
     prog {
         SPtr = ProgPtr;
         programa = SPtr;
-
-        generarAssembler();
         guardarTS();
         printf("Regla 0\n");
         printf("\nCompilacion OK.\n");
@@ -203,7 +194,7 @@ posicion:
                                             limpiarPivot(valor);
                                             valor[strlen(valor)] = '\0';
                                             IdPtr = crear_nodo(&num_nodo, valor, TIPO_INT, NULL, NULL);
-                                            IdCompPtr = crear_nodo(&num_nodo, "@idComp", TIPO_INT, NULL, NULL);
+                                            IdCompPtr = crear_nodo(&num_nodo, "@IdComp", TIPO_INT, NULL, NULL);
                                             AsigPtr = crear_nodo(&num_nodo, "ASIGNA", NODO_SIN_TIPO, IdCompPtr, IdPtr);
                                           }
     |
@@ -220,7 +211,7 @@ lista:
           SumPunt = crear_nodo(&num_nodo, "+", SUMA, AuxPtr, UnoPtr);
 
           //lado izquierdo (condicion)
-          IfIzqPtr = crear_nodo(&num_nodo, "@idComp", TIPO_INT, SumPunt, NULL);
+          IfIzqPtr = crear_nodo(&num_nodo, "@IdComp", TIPO_INT, SumPunt, NULL);
 
           char *valor = (char*) malloc(sizeof(char)*200);
           itoa($1, cad, 10);
@@ -251,7 +242,7 @@ lista:
                      SumPunt = crear_nodo(&num_nodo, "+", SUMA, AuxPtr, UnoPtr);
 
                      //lado izquierdo (condicion)
-                     IfIzqPtr = crear_nodo(&num_nodo, "@idComp", TIPO_INT, SumPunt, NULL);
+                     IfIzqPtr = crear_nodo(&num_nodo, "@IdComp", TIPO_INT, SumPunt, NULL);
 
                      char *valor = (char*) malloc(sizeof(char)*200);
                      itoa($3, cad, 10);
@@ -809,68 +800,4 @@ int escribir_archivo_txt(t_nodo_arbol *tree)
         fprintf(f, "%s\n", s + i*CARACTERES_RENGLON_ARBOL);
     }    
     fclose(f);
-}
-
-/* --- Funciones para Assembler --- */
-
-void generarAssembler(){
-    FILE* archAssembler = fopen("Final.asm","wt");
-
-    crearHeader(archAssembler);
-    crearSeccionData(archAssembler);
-    crearSeccionCode(archAssembler);
-
-    //recorrer_arbol_posorden(&programa, archAssembler);
-
-    crearFooter(archAssembler);
-    fclose(archAssembler);
-}
-
-void crearHeader(FILE *archAssembler){
-    fprintf(archAssembler, "%s\n%s\n\n", "include number.asm", "include macros2.asm");
-    fprintf(archAssembler, "%-30s%-30s\n", ".MODEL LARGE", "; Modelo de memoria");
-    fprintf(archAssembler, "%-30s%-30s\n", ".386", "; Tipo de procesador");
-    fprintf(archAssembler, "%-30s%-30s\n\n", ".STACK 200h", "; Bytes en el stack");
-}
-
-void crearSeccionData(FILE *archAssembler){
-    t_simbolo *aux;
-    t_simbolo *tablaSimbolos = tablaTS.primero;
-
-    fprintf(archAssembler, "%s\n\n", ".DATA");
-
-    while(tablaSimbolos){
-        aux = tablaSimbolos;
-        tablaSimbolos = tablaSimbolos->next;
-        
-        if(strcmp(aux->data.tipo, "INTEGER") == 0){
-            fprintf(archAssembler, "%-15s%-15s%-15s%-15s\n", aux->data.nombreASM, "dd", "?", "; Variable int");
-        }
-        else if(strcmp(aux->data.tipo, "CTE") == 0){ 
-            char valor[50];
-            sprintf(valor, "%d.0", aux->data.valor.valor_int);
-            fprintf(archAssembler, "%-15s%-15s%-15s%-15s\n", aux->data.nombreASM, "dd", valor, "; Constante int");
-        }
-        else if(strcmp(aux->data.tipo, "CTE_S") == 0){
-            char valor[150];
-            sprintf(valor, "%s, '$', %d dup (?)",aux->data.valor.valor_str, strlen(aux->data.valor.valor_str) - 2);
-            fprintf(archAssembler, "%-50s%-10s%-44s%-15s\n", aux->data.nombreASM, "db", valor, "; Constante string");
-        }
-    }
-    fprintf(archAssembler, "%-15s%-15s%-15s%-15s\n", "@salto", "dd", "10.0", "; lugar a donde voy a saltar");
-    fprintf(archAssembler, "%-15s%-15s%-15s%-15s\n", "@pos", "dd", "-1.0", "; primera posicion encontrada en la lista");
-    fprintf(archAssembler, "%-15s%-15s%-15s%-15s\n", "@idComp", "dd", "-1.0", "; pivot ingresado por el usuario");
-    fprintf(archAssembler, "%-15s%-15s%-15s%-15s\n", "@aux", "dd", "0.0", "; posicion de la lista en la que voy");
-    fprintf(archAssembler, "%-15s%-15s%-15s%-15s\n", "@1", "dd", "1.0", "; constante para incrementar @aux");
-}
-
-void crearSeccionCode(FILE *archAssembler){
-    fprintf(archAssembler, "\n%s\n\n%s\n\n", ".CODE", "inicio:");
-    fprintf(archAssembler, "%-30s%-30s\n", "mov AX,@DATA", "; Inicializa el segmento de datos");
-    fprintf(archAssembler, "%-30s\n%-30s\n\n", "mov DS,AX", "mov ES,AX");
-}
-
-void crearFooter(FILE *archAssembler){
-    fprintf(archAssembler, "\n%-30s%-30s\n", "mov AX,4C00h", "; Indica que debe finalizar la ejecución");
-    fprintf(archAssembler, "%s\n\n%s", "int 21h", "END inicio");
 }
