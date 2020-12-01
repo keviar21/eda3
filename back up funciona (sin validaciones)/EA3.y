@@ -18,7 +18,6 @@ FILE  *yyin;
 int contadorString = 0;
 int endIf = 1;
 int x = 500;
-int fin = 1000;
 
 /* --- Tabla de simbolos --- */
 typedef struct
@@ -80,12 +79,9 @@ t_nodo_arbol* IfDerPtr; //Puntero al nodo IF
 t_nodo_arbol* CmpPtr; //seria el == de la comparacion del if
 t_nodo_arbol* SaltoPtr; //a donde voy a saltar si encuentra la posicion
 t_nodo_arbol* BiPtr; //puntero al salto incondicional
-t_nodo_arbol* BLEPtr; //salto para ver si el pivot ingresado es menor que 1
 t_nodo_arbol* SumPunt; //puntero al simbolo "+"
 t_nodo_arbol* UnoPtr; //1 para sumarle al pos
 t_nodo_arbol* AuxPtr; //va a indicar en que posicion de la lista estoy - se inicializa en 1
-t_nodo_arbol* FinPtr; //puntero al nodo que dice que saltes al fin del programa
-t_nodo_arbol* AuxSPtr; //puntero que me sirve para crear nodos con auxiliares string internar
 
 t_simbolo *lexemaAsig;
 t_simbolo *lexemaIzq;
@@ -137,11 +133,6 @@ S:
         SPtr = ProgPtr;
         programa = SPtr;
 
-        char *mensaje = "El pivot debe ser mayor a 0";
-
-        /* insertarTS("menor", "CTE_S", mensaje, 0, 0);
-        insertarTS("perdido", "CTE_S", "Elemento no encontrado en la lista", 0, 0);
-        insertarTS("vacia", "CTE_S", "La lista esta vacia", 0, 0); */
         generarAssembler();
         guardarTS();
         printf("Regla 0\n");
@@ -177,32 +168,10 @@ read:
               char *valor = (char*) malloc(sizeof(char)*200);
               sprintf(valor,"%s",$2);
               valor[strlen(valor)] = '\0';
+
               IdCompPtr = crear_nodo(&num_nodo, valor, TIPO_INT, NULL, NULL);
-
-              //lado derecho ";"
-
-              //ifder
-
-              AuxSPtr = crear_nodo(&num_nodo, "@esMenor", AUX, NULL, NULL);
-
-              WritePtr = crear_nodo(&num_nodo, "WRITE", NODO_SIN_TIPO, AuxSPtr, NULL);
-              FinPtr = crear_nodo(&num_nodo, "@fin", AUX, NULL, NULL);
-              BiPtr = crear_nodo(&num_nodo, "BF", NODO_SIN_TIPO, WritePtr, FinPtr);
-              
-              //ifizq
-              IdPtr = crear_nodo(&num_nodo, valor, TIPO_INT, NULL, NULL);
-              UnoPtr = crear_nodo(&num_nodo, "@1", AUX, NULL, NULL);
-              BLEPtr = crear_nodo(&num_nodo, "BLE", NODO_SIN_TIPO, IdPtr, UnoPtr);
-
-              //if padre
-              IfPtr = crear_nodo(&num_nodo, "IF", NODO_SIN_TIPO, BLEPtr, BiPtr);
-
-              //lado izquierdo ";"
               IdPtr = crear_nodo(&num_nodo, valor, TIPO_INT, NULL, NULL);
               ReadPtr = crear_nodo(&num_nodo, "READ", NODO_SIN_TIPO, IdPtr, NULL);
-
-              //padre ";"
-              ReadPtr = crear_nodo(&num_nodo, ";", NODO_SIN_TIPO, ReadPtr, IfPtr);
             }
     ; 
 
@@ -350,7 +319,6 @@ int main(int argc, char *argv[])
         //system("Pause");
         escribir_archivo_txt(programa);
         crearTablaTS(); //tablaTS.primero = NULL;
-
         free_arbol(&programa);
         fclose(yyin);
         return 0;
@@ -683,10 +651,6 @@ void recorrer_arbol_posorden(t_arbol *pa, FILE *pf)
             t_simbolo *lexema = getLexema((*pa)->hijo_izq->valor);
 	      	fprintf(pf,"displayString %s\nNEWLINE\n\n",lexema->data.nombreASM);
 	    }
-        else if ((*pa)->hijo_izq->tipo == AUX)
-	    {
-	      	fprintf(pf,"displayString %s\nNEWLINE\n\n",(*pa)->hijo_izq->valor);
-	    }
   	}
 
     if(strcmpi((*pa)->valor,"ASIGNA")==0){
@@ -735,27 +699,6 @@ void recorrer_arbol_posorden(t_arbol *pa, FILE *pf)
         fprintf(pf,"jne branch%d\n\n", endIf);
   	}
 
-    if(strcmpi((*pa)->valor,"BLE")==0){
-
-        if ((*pa)->hijo_der->tipo == TIPO_INT ) {
-            lexemaDer = getLexema((*pa)->hijo_der->valor);
-            fprintf(pf,"fld %s\n",lexemaDer->data.nombreASM);
-        }
-        else {
-            fprintf(pf,"fld %s\n",(*pa)->hijo_der->valor);
-        }
-
-        if ((*pa)->hijo_izq->tipo == TIPO_INT ) {
-            lexemaIzq = getLexema((*pa)->hijo_izq->valor);
-            fprintf(pf,"fld %s\n",lexemaIzq->data.nombreASM);
-        }
-        else {
-            fprintf(pf,"fld %s\n",(*pa)->hijo_izq->valor);
-        }
-        fprintf(pf, "fxch\nfcom\nfstsw AX\nsahf\n");
-        fprintf(pf,"jbe branch%d\n\n", endIf);
-  	}
-
     if(strcmpi((*pa)->valor,"+")==0){
         
         fprintf(pf,"fld %s\n",(*pa)->hijo_der->valor);
@@ -768,13 +711,51 @@ void recorrer_arbol_posorden(t_arbol *pa, FILE *pf)
         fprintf(pf,"jmp branch%d\n\n",x);
     }
 
-    if(strcmpi((*pa)->valor,"BF")==0){
-        fprintf(pf,"jmp branch%d\n\n",fin);
-    }
-
     if(strcmp((*pa)->valor,"@saltoET")==0){
          fprintf(pf,"branch%d:\n\n",x);
+        /* if((*pa)->hijo_der->tipo == AUX) {
+            fprintf(pf,"branch%d:\n\n",x);
+        } */
     }
+
+
+    /* if(strcmpi((*pa)->valor,"MUL")==0){
+        if (((*pa)->hijo_izq->tipo == TIPO_INT || (*pa)->hijo_izq->tipo == TIPO_CONST_INT) && ((*pa)->hijo_der->tipo == TIPO_INT || (*pa)->hijo_der->tipo == TIPO_CONST_INT))
+        {
+            lexemaIzq = getLexema((*pa)->hijo_izq->valor);
+            lexemaDer = getLexema((*pa)->hijo_der->valor);
+
+            fprintf(pf,"\tfld \t\t\t%s\n\t",lexemaIzq->data.nombreASM);
+            fprintf(pf,"\tfld \t\t\t%s\n\t",lexemaDer->data.nombreASM);
+        }
+        fprintf(pf,"\tfmul \n\t");
+    } */
+    
+    /* if(strcmpi((*pa)->valor,"MAS")==0){
+
+        if (((*pa)->hijo_izq->tipo == TIPO_INT || (*pa)->hijo_izq->tipo == TIPO_CONST_INT) && ((*pa)->hijo_der->tipo == TIPO_INT || (*pa)->hijo_der->tipo == TIPO_CONST_INT))
+        {
+            lexemaIzq = getLexema((*pa)->hijo_izq->valor);
+            lexemaDer = getLexema((*pa)->hijo_der->valor);
+
+            fprintf(pf,"\tfld \t\t\t%s\n\t",lexemaIzq->data.nombreASM);
+            fprintf(pf,"\tfld \t\t\t%s\n\t",lexemaDer->data.nombreASM);
+        }
+        fprintf(pf,"\tfadd \n\t");
+    } */
+    
+    /* if(strcmpi((*pa)->valor,"DIV")==0){
+        if (((*pa)->hijo_izq->tipo == TIPO_INT || (*pa)->hijo_izq->tipo == TIPO_CONST_INT) && ((*pa)->hijo_der->tipo == TIPO_INT || (*pa)->hijo_der->tipo == TIPO_CONST_INT))
+        {
+            lexemaIzq = getLexema((*pa)->hijo_izq->valor);
+            lexemaDer = getLexema((*pa)->hijo_der->valor);
+
+            fprintf(pf,"\tfld \t\t\t%s\n\t",lexemaIzq->data.nombreASM);
+            fprintf(pf,"\tfld \t\t\t%s\n\t",lexemaDer->data.nombreASM);
+        }
+        fprintf(pf,"\tfdiv \n\t");
+    } */
+    
 }
 
 void free_nodo(t_nodo_arbol* pn)
@@ -898,10 +879,9 @@ void generarAssembler(){
     crearHeader(archAssembler);
     crearSeccionData(archAssembler);
     crearSeccionCode(archAssembler);
-    //printf("antes del arbol\n");
+    printf("antes del arbol\n");
     recorrer_arbol_posorden(&programa, archAssembler);
-    //printf("despues del arbol\n");
-    fprintf(archAssembler,"\nbranch%d:\n\n",fin);
+    printf("despues del arbol\n");
     crearFooter(archAssembler);
     fclose(archAssembler);
 }
@@ -937,16 +917,11 @@ void crearSeccionData(FILE *archAssembler){
             fprintf(archAssembler, "%-50s%-10s%-44s%-15s\n", aux->data.nombreASM, "db", valor, "; Constante string");
         }
     }
-    fprintf(archAssembler, "%-15s%-15s%-15s%-15s\n", "@salto", "dd", "500.0", "; lugar a donde voy a saltar");
+    fprintf(archAssembler, "%-15s%-15s%-15s%-15s\n", "@salto", "dd", "10.0", "; lugar a donde voy a saltar");
     fprintf(archAssembler, "%-15s%-15s%-15s%-15s\n", "@pos", "dd", "-1.0", "; primera posicion encontrada en la lista");
     fprintf(archAssembler, "%-15s%-15s%-15s%-15s\n", "@idComp", "dd", "-1.0", "; pivot ingresado por el usuario");
     fprintf(archAssembler, "%-15s%-15s%-15s%-15s\n", "@aux", "dd", "0.0", "; posicion de la lista en la que voy");
     fprintf(archAssembler, "%-15s%-15s%-15s%-15s\n", "@1", "dd", "1.0", "; constante para incrementar @aux");
-    fprintf(archAssembler, "%-15s%-15s%-15s%-15s\n", "@fin", "dd", "1000.0", "; etiqueta al fin del programa");
-
-    fprintf(archAssembler, "%-15s%-15s%-15s%-15s\n", "@esMenor", "db", "\"El pivot ingresado debe ser mayor a 0\"", "; mensaje del sistema");
-    fprintf(archAssembler, "%-15s%-15s%-15s%-15s\n", "@perdido", "db", "\"El pivot no se encuentra en la lista\"", "; mensaje del sistema");
-    fprintf(archAssembler, "%-15s%-15s%-15s%-15s\n", "@vacia", "db", "\"La lista esta vacia\"", "; mensaje del sistema");
 }
 
 void crearSeccionCode(FILE *archAssembler){

@@ -17,15 +17,11 @@ _40            dd             40.0           ; Constante int
 _5             dd             5.0            ; Constante int
 _4             dd             4.0            ; Constante int
 S__Elemento_encontrado_en_posicion____2           db        "Elemento encontrado en posicion: ", '$', 33 dup (?); Constante string
-@salto         dd             500.0          ; lugar a donde voy a saltar
+@salto         dd             10.0           ; lugar a donde voy a saltar
 @pos           dd             -1.0           ; primera posicion encontrada en la lista
 @idComp        dd             -1.0           ; pivot ingresado por el usuario
 @aux           dd             0.0            ; posicion de la lista en la que voy
 @1             dd             1.0            ; constante para incrementar @aux
-@fin           dd             1000.0         ; etiqueta al fin del programa
-@esMenor       db             "El pivot ingresado debe ser mayor a 0"; mensaje del sistema
-@perdido       db             "El pivot no se encuentra en la lista"; mensaje del sistema
-@vacia         db             "La lista esta vacia"; mensaje del sistema
 
 .CODE
 
@@ -42,17 +38,22 @@ getFloat pivot
 NEWLINE
 
 fld @1
+fld @aux
+fadd
+fstp @aux
+
 fld pivot
+fld _10
 fxch
 fcom
 fstsw AX
 sahf
-jbe branch1
+jne branch1
 
-displayString @esMenor
-NEWLINE
+fld @aux
+fstp @pos
 
-jmp branch1000
+jmp branch500
 
 branch1:
 
@@ -62,7 +63,7 @@ fadd
 fstp @aux
 
 fld pivot
-fld _10
+fld _20
 fxch
 fcom
 fstsw AX
@@ -82,7 +83,7 @@ fadd
 fstp @aux
 
 fld pivot
-fld _20
+fld _30
 fxch
 fcom
 fstsw AX
@@ -102,7 +103,7 @@ fadd
 fstp @aux
 
 fld pivot
-fld _30
+fld _40
 fxch
 fcom
 fstsw AX
@@ -122,7 +123,7 @@ fadd
 fstp @aux
 
 fld pivot
-fld _40
+fld _5
 fxch
 fcom
 fstsw AX
@@ -142,7 +143,7 @@ fadd
 fstp @aux
 
 fld pivot
-fld _5
+fld _4
 fxch
 fcom
 fstsw AX
@@ -156,26 +157,6 @@ jmp branch500
 
 branch6:
 
-fld @1
-fld @aux
-fadd
-fstp @aux
-
-fld pivot
-fld _4
-fxch
-fcom
-fstsw AX
-sahf
-jne branch7
-
-fld @aux
-fstp @pos
-
-jmp branch500
-
-branch7:
-
 branch500:
 
 fld @pos
@@ -186,9 +167,6 @@ NEWLINE
 
 displayFloat resul,2
 NEWLINE
-
-
-branch1000:
 
 
 mov AX,4C00h                  ; Indica que debe finalizar la ejecución
