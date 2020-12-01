@@ -40,10 +40,9 @@ NEWLINE
 fld @1
 fld @aux
 fadd
-fstp @aux
 
-fld pivot
 fld _10
+fld @idComp
 fxch
 fcom
 fstsw AX
@@ -60,10 +59,9 @@ branch1:
 fld @1
 fld @aux
 fadd
-fstp @aux
 
-fld pivot
 fld _20
+fld @idComp
 fxch
 fcom
 fstsw AX
@@ -80,10 +78,9 @@ branch2:
 fld @1
 fld @aux
 fadd
-fstp @aux
 
-fld pivot
 fld _30
+fld @idComp
 fxch
 fcom
 fstsw AX
@@ -100,10 +97,9 @@ branch3:
 fld @1
 fld @aux
 fadd
-fstp @aux
 
-fld pivot
 fld _40
+fld @idComp
 fxch
 fcom
 fstsw AX
@@ -120,10 +116,9 @@ branch4:
 fld @1
 fld @aux
 fadd
-fstp @aux
 
-fld pivot
 fld _5
+fld @idComp
 fxch
 fcom
 fstsw AX
@@ -140,10 +135,9 @@ branch5:
 fld @1
 fld @aux
 fadd
-fstp @aux
 
-fld pivot
 fld _4
+fld @idComp
 fxch
 fcom
 fstsw AX
@@ -156,6 +150,9 @@ fstp @pos
 jmp branch500
 
 branch6:
+
+fld pivot
+fstp @idComp
 
 branch500:
 

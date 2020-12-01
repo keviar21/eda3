@@ -169,7 +169,6 @@ read:
               sprintf(valor,"%s",$2);
               valor[strlen(valor)] = '\0';
 
-              IdCompPtr = crear_nodo(&num_nodo, valor, TIPO_INT, NULL, NULL);
               IdPtr = crear_nodo(&num_nodo, valor, TIPO_INT, NULL, NULL);
               ReadPtr = crear_nodo(&num_nodo, "READ", NODO_SIN_TIPO, IdPtr, NULL);
             }
@@ -178,9 +177,9 @@ read:
 asig:
     ID ASIGNA posicion { printf("Regla 7\n");
                      
-                         SaltoPtr = crear_nodo(&num_nodo, "@saltoET", AUX, NULL, NULL);
+                         SaltoPtr = crear_nodo(&num_nodo, "@salto", AUX, NULL, NULL);
 
-                         //AsigPtr = crear_nodo(&num_nodo, ";", NODO_SIN_TIPO, SaltoPtr, AsigPtr);
+                         AsigPtr = crear_nodo(&num_nodo, ";", NODO_SIN_TIPO, SaltoPtr, AsigPtr);
 
                          char *valor = (char*) malloc(sizeof(char)*200);
                          sprintf(valor,"%s",$1);
@@ -193,7 +192,7 @@ asig:
                          sprintf(posi,"%s",$3);
                          posi[strlen(valor)] = '\0';
                          PosPtr = crear_nodo(&num_nodo, posi, TIPO_INT, NULL, NULL); */
-                         PosPtr = crear_nodo(&num_nodo, "@pos", AUX, ListaPtr, SaltoPtr);
+                         PosPtr = crear_nodo(&num_nodo, "@pos", AUX, ListaPtr, AsigPtr);
 
                          AsigPtr = crear_nodo(&num_nodo, "ASIGNA", NODO_SIN_TIPO, IdPtr, PosPtr);
                        }
@@ -206,7 +205,7 @@ posicion:
                                             limpiarPivot(valor);
                                             valor[strlen(valor)] = '\0';
                                             IdPtr = crear_nodo(&num_nodo, valor, TIPO_INT, NULL, NULL);
-                                            //IdCompPtr = crear_nodo(&num_nodo, "@idComp", AUX, NULL, NULL);
+                                            IdCompPtr = crear_nodo(&num_nodo, "@idComp", AUX, NULL, NULL);
                                             AsigPtr = crear_nodo(&num_nodo, "ASIGNA", NODO_SIN_TIPO, IdCompPtr, IdPtr);
                                           }
     |
@@ -223,13 +222,13 @@ lista:
           SumPunt = crear_nodo(&num_nodo, "+", SUMA, AuxPtr, UnoPtr);
 
           //lado izquierdo (condicion)
-          IfDerPtr = IdCompPtr;
+          IfIzqPtr = crear_nodo(&num_nodo, "@idComp", AUX, SumPunt, NULL);
 
           char *valor = (char*) malloc(sizeof(char)*200);
           itoa($1, cad, 10);
           sprintf(valor,"%s",cad);
           valor[strlen(valor)] = '\0';
-          IfIzqPtr = crear_nodo(&num_nodo, valor, TIPO_INT, SumPunt, NULL);
+          IfDerPtr = crear_nodo(&num_nodo, valor, TIPO_INT, NULL, NULL);
           CmpPtr = crear_nodo(&num_nodo, "CMP", NODO_SIN_TIPO, IfIzqPtr, IfDerPtr);
 
           //lado derecho (guardar pos y salto)
@@ -254,13 +253,13 @@ lista:
                      SumPunt = crear_nodo(&num_nodo, "+", SUMA, AuxPtr, UnoPtr);
 
                      //lado izquierdo (condicion)
-                     IfDerPtr = IdCompPtr;
+                     IfIzqPtr = crear_nodo(&num_nodo, "@idComp", AUX, SumPunt, NULL);
 
                      char *valor = (char*) malloc(sizeof(char)*200);
                      itoa($3, cad, 10);
                      sprintf(valor,"%s",cad);
                      valor[strlen(valor)] = '\0';
-                     IfIzqPtr = crear_nodo(&num_nodo, valor, TIPO_INT, SumPunt, NULL);
+                     IfDerPtr = crear_nodo(&num_nodo, valor, TIPO_INT, NULL, NULL);
                      CmpPtr = crear_nodo(&num_nodo, "CMP", NODO_SIN_TIPO, IfIzqPtr, IfDerPtr);
 
                      //lado derecho (guardar pos y salto)
@@ -703,19 +702,18 @@ void recorrer_arbol_posorden(t_arbol *pa, FILE *pf)
         
         fprintf(pf,"fld %s\n",(*pa)->hijo_der->valor);
         fprintf(pf,"fld %s\n",(*pa)->hijo_izq->valor);
-        fprintf(pf,"fadd\n");
-        fprintf(pf,"fstp %s\n\n",(*pa)->hijo_izq->valor);
+        fprintf(pf,"fadd\n\n");
     }
 
     if(strcmpi((*pa)->valor,"BI")==0){
         fprintf(pf,"jmp branch%d\n\n",x);
     }
 
-    if(strcmp((*pa)->valor,"@saltoET")==0){
-         fprintf(pf,"branch%d:\n\n",x);
-        /* if((*pa)->hijo_der->tipo == AUX) {
+    if(strcmp((*pa)->valor,";")==0){
+        //printf("encontre una coma\n");
+        if((*pa)->hijo_izq->tipo == AUX) {
             fprintf(pf,"branch%d:\n\n",x);
-        } */
+        }
     }
 
 
