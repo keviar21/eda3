@@ -12,8 +12,8 @@
 #define YYERROR_VERBOSE 1
 FILE  *yyin;
 
-#define RENGLONES_IMPRESION_ARBOL 70
-#define CARACTERES_RENGLON_ARBOL 350
+#define RENGLONES_IMPRESION_ARBOL 150
+#define CARACTERES_RENGLON_ARBOL 500
 
 int contadorString = 0;
 
@@ -53,6 +53,7 @@ char* limpiarString(char*, const char*);
 char* reemplazarChar(char*, const char*, const char, const char);
 char* reemplazarString(char*, const char*);
 char* obtenerID(char*);
+char* limpiarPivot(char*);
 
 /* --- Arbol --- */
 int num_nodo;
@@ -68,11 +69,18 @@ t_nodo_arbol* WritePtr;
 t_nodo_arbol* IdPtr;
 t_nodo_arbol* CteSPtr;
 t_nodo_arbol* CtePtr;
-t_nodo_arbol* PosPtr; //Return de la funcion Posicion
+t_nodo_arbol* PosPtr; //Return de la funcion Posicion - se inicializa en 0
 t_nodo_arbol* IdCompPtr; //este es el id que el usuario quiere encontrar
 t_nodo_arbol* IfPtr; //Puntero al nodo IF
 t_nodo_arbol* IfIzqPtr; //Puntero al nodo IF
 t_nodo_arbol* IfDerPtr; //Puntero al nodo IF
+t_nodo_arbol* CmpPtr; //seria el == de la comparacion del if
+t_nodo_arbol* SaltoPtr; //a donde voy a saltar si encuentra la posicion
+t_nodo_arbol* BiPtr; //puntero al salto incondicional
+t_nodo_arbol* SumPunt; //puntero al simbolo "+"
+t_nodo_arbol* UnoPtr; //1 para sumarle al pos
+t_nodo_arbol* AuxPtr; //va a indicar en que posicion de la lista estoy - se inicializa en 1
+
 t_simbolo *lexemaAsig;
 t_simbolo *lexemaIzq;
 t_simbolo *lexemaDer;
@@ -157,7 +165,11 @@ read:
 
 asig:
     ID ASIGNA posicion { printf("Regla 7\n");
-                         //printf("id: %s", $1);
+                     
+                         SaltoPtr = crear_nodo(&num_nodo, "@salto", TIPO_INT, NULL, NULL);
+
+                         AsigPtr = crear_nodo(&num_nodo, ";", NODO_SIN_TIPO, SaltoPtr, AsigPtr);
+
                          char *valor = (char*) malloc(sizeof(char)*200);
                          sprintf(valor,"%s",$1);
                          obtenerID(valor);
@@ -169,7 +181,7 @@ asig:
                          sprintf(posi,"%s",$3);
                          posi[strlen(valor)] = '\0';
                          PosPtr = crear_nodo(&num_nodo, posi, TIPO_INT, NULL, NULL); */
-                         PosPtr = crear_nodo(&num_nodo, "@pos", TIPO_INT, ListaPtr, NULL);
+                         PosPtr = crear_nodo(&num_nodo, "@pos", TIPO_INT, ListaPtr, AsigPtr);
 
                          AsigPtr = crear_nodo(&num_nodo, "ASIGNA", NODO_SIN_TIPO, IdPtr, PosPtr);
                        }
@@ -177,11 +189,13 @@ asig:
 
 posicion:
     POSICION PARA ID PYC CA lista CC PARC { printf("Regla 8\n"); 
-                                            /* char *valor = (char*) malloc(sizeof(char)*200);
+                                            char *valor = (char*) malloc(sizeof(char)*200);
                                             sprintf(valor,"%s",$3);
+                                            limpiarPivot(valor);
                                             valor[strlen(valor)] = '\0';
-                                            IdCompPtr = crear_nodo(&num_nodo, valor, TIPO_INT, NULL, NULL); */
-                                            
+                                            IdPtr = crear_nodo(&num_nodo, valor, TIPO_INT, NULL, NULL);
+                                            IdCompPtr = crear_nodo(&num_nodo, "@IdComp", TIPO_INT, NULL, NULL);
+                                            AsigPtr = crear_nodo(&num_nodo, "ASIGNA", NODO_SIN_TIPO, IdCompPtr, IdPtr);
                                           }
     |
     POSICION PARA ID PYC CA CC PARC { printf("Regla 9\n"); }
@@ -189,15 +203,65 @@ posicion:
 
 lista:
     CTE { printf("Regla 10\n"); 
-          IfIzqPtr = crear_nodo(&num_nodo, "@if_izq", TIPO_INT, NULL, NULL);
-          IfDerPtr = crear_nodo(&num_nodo, "@if_der", TIPO_INT, NULL, NULL);
-          ListaPtr = crear_nodo(&num_nodo, "IF", NODO_SIN_TIPO, IfIzqPtr, IfDerPtr);
+          char cad[20];
+
+          //sumatoria del aux
+          AuxPtr = crear_nodo(&num_nodo, "@aux", TIPO_INT, NULL, NULL);
+          UnoPtr = crear_nodo(&num_nodo, "@1", TIPO_INT, NULL, NULL);
+          SumPunt = crear_nodo(&num_nodo, "+", SUMA, AuxPtr, UnoPtr);
+
+          //lado izquierdo (condicion)
+          IfIzqPtr = crear_nodo(&num_nodo, "@IdComp", TIPO_INT, SumPunt, NULL);
+
+          char *valor = (char*) malloc(sizeof(char)*200);
+          itoa($1, cad, 10);
+          sprintf(valor,"%s",cad);
+          valor[strlen(valor)] = '\0';
+          IfDerPtr = crear_nodo(&num_nodo, valor, TIPO_INT, NULL, NULL);
+          CmpPtr = crear_nodo(&num_nodo, "CMP", NODO_SIN_TIPO, IfIzqPtr, IfDerPtr);
+
+          //lado derecho (guardar pos y salto)
+          PosPtr = crear_nodo(&num_nodo, "@pos", TIPO_INT, NULL, NULL);
+          AuxPtr = crear_nodo(&num_nodo, "@aux", TIPO_INT, NULL, NULL);
+          AsigPtr = crear_nodo(&num_nodo, "ASIGNA", NODO_SIN_TIPO, PosPtr, AuxPtr);
+
+          SaltoPtr = crear_nodo(&num_nodo, "@salto", TIPO_INT, NULL, NULL);
+
+          BiPtr = crear_nodo(&num_nodo, "BI", NODO_SIN_TIPO, AsigPtr, SaltoPtr);
+          
+          //padre
+          ListaPtr = crear_nodo(&num_nodo, "IF", NODO_SIN_TIPO, CmpPtr, BiPtr);
         }
     |
     lista COMA CTE { printf("Regla 11\n"); 
-                     IfIzqPtr = crear_nodo(&num_nodo, "@if_izq", TIPO_INT, NULL, NULL);
-                     IfDerPtr = crear_nodo(&num_nodo, "@if_der", TIPO_INT, NULL, NULL);
-                     IfPtr = crear_nodo(&num_nodo, "IF", NODO_SIN_TIPO, IfIzqPtr, IfDerPtr);
+                     char cad[20];
+
+                     //sumatoria del aux
+                     AuxPtr = crear_nodo(&num_nodo, "@aux", TIPO_INT, NULL, NULL);
+                     UnoPtr = crear_nodo(&num_nodo, "@1", TIPO_INT, NULL, NULL);
+                     SumPunt = crear_nodo(&num_nodo, "+", SUMA, AuxPtr, UnoPtr);
+
+                     //lado izquierdo (condicion)
+                     IfIzqPtr = crear_nodo(&num_nodo, "@IdComp", TIPO_INT, SumPunt, NULL);
+
+                     char *valor = (char*) malloc(sizeof(char)*200);
+                     itoa($3, cad, 10);
+                     sprintf(valor,"%s",cad);
+                     valor[strlen(valor)] = '\0';
+                     IfDerPtr = crear_nodo(&num_nodo, valor, TIPO_INT, NULL, NULL);
+                     CmpPtr = crear_nodo(&num_nodo, "CMP", NODO_SIN_TIPO, IfIzqPtr, IfDerPtr);
+
+                     //lado derecho (guardar pos y salto)
+                     PosPtr = crear_nodo(&num_nodo, "@pos", TIPO_INT, NULL, NULL);
+                     AuxPtr = crear_nodo(&num_nodo, "@aux", TIPO_INT, NULL, NULL);
+                     AsigPtr = crear_nodo(&num_nodo, "ASIGNA", NODO_SIN_TIPO, PosPtr, AuxPtr);
+
+                     SaltoPtr = crear_nodo(&num_nodo, "@salto", TIPO_INT, NULL, NULL);
+
+                     BiPtr = crear_nodo(&num_nodo, "BI", NODO_SIN_TIPO, AsigPtr, SaltoPtr);
+
+                     //padre
+                     IfPtr = crear_nodo(&num_nodo, "IF", NODO_SIN_TIPO, CmpPtr, BiPtr);
                      ListaPtr = crear_nodo(&num_nodo, ";", NODO_SIN_TIPO, ListaPtr, IfPtr);
                    }
     ;
@@ -497,6 +561,19 @@ char* reemplazarString(char* dest, const char* cad)
 char* obtenerID(char* cadena)
 {
     char* posAsig = strtok(cadena, "=");
+    int i;
+
+    for(i=0 ; i<strlen(cadena) ; i++) {
+        if(cadena[i] == ' ') {
+            cadena[i] = '\0';
+        }
+    }
+    return cadena;
+}
+
+char* limpiarPivot(char* cadena)
+{
+    char* posAsig = strtok(cadena, ";");
     int i;
 
     for(i=0 ; i<strlen(cadena) ; i++) {
