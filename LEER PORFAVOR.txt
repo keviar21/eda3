@@ -1,0 +1,4 @@
+El arbol esta dibujado en intermedia.txt
+Para poder visualizarlo debe tener desactivada el formato de linea del block de notas: Formato / Ajuste de linea
+
+En algunas ocaciones el programa no dibuja el arbol (si lo genera en memoria pero no lo llega a imprimir en el text). Generar y ejecutar el compilador hasta que ocurra.

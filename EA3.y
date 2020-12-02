@@ -974,9 +974,9 @@ void crearSeccionData(FILE *archAssembler){
     fprintf(archAssembler, "%-15s%-15s%-15s%-15s\n", "@unoNeg", "dd", "-1.0", "; constante para confirmas que el elemento no esta en la lista");
     fprintf(archAssembler, "%-15s%-15s%-15s%-15s\n", "@fin", "dd", "1000.0", "; etiqueta al fin del programa");
 
-    fprintf(archAssembler, "%-15s%-15s%-15s%-15s\n", "@esMenor", "db", "\"El pivot ingresado debe ser mayor a 0\"", "; mensaje del sistema");
-    fprintf(archAssembler, "%-15s%-15s%-15s%-15s\n", "@perdido", "db", "\"El pivot no se encuentra en la lista\"", "; mensaje del sistema");
-    fprintf(archAssembler, "%-15s%-15s%-15s%-15s\n", "@vacia", "db", "\"La lista esta vacia\"", "; mensaje del sistema");
+    fprintf(archAssembler, "%-15s%-15s%-15s%-15s\n", "@esMenor", "db", "\"El pivot ingresado debe ser mayor a 0\" , '$', 39 dup (?)" , "; mensaje del sistema");
+    fprintf(archAssembler, "%-15s%-15s%-15s%-15s\n", "@perdido", "db", "\"El pivot no se encuentra en la lista\", '$', 38 dup (?)", "; mensaje del sistema");
+    fprintf(archAssembler, "%-15s%-15s%-15s%-15s\n", "@vacia", "db", "\"La lista esta vacia\", '$', 21 dup (?)", "; mensaje del sistema");
 }
 
 void crearSeccionCode(FILE *archAssembler){

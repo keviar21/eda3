@@ -24,9 +24,9 @@ S__Elemento_encontrado_en_posicion____2           db        "Elemento encontrado
 @1             dd             1.0            ; constante para incrementar @aux
 @unoNeg        dd             -1.0           ; constante para confirmas que el elemento no esta en la lista
 @fin           dd             1000.0         ; etiqueta al fin del programa
-@esMenor       db             "El pivot ingresado debe ser mayor a 0"; mensaje del sistema
-@perdido       db             "El pivot no se encuentra en la lista"; mensaje del sistema
-@vacia         db             "La lista esta vacia"; mensaje del sistema
+@esMenor       db             "El pivot ingresado debe ser mayor a 0" , '$', 39 dup (?); mensaje del sistema
+@perdido       db             "El pivot no se encuentra en la lista", '$', 38 dup (?); mensaje del sistema
+@vacia         db             "La lista esta vacia", '$', 21 dup (?); mensaje del sistema
 
 .CODE
 
