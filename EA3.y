@@ -144,9 +144,6 @@ S:
 
         char *mensaje = "El pivot debe ser mayor a 0";
 
-        /* insertarTS("menor", "CTE_S", mensaje, 0, 0);
-        insertarTS("perdido", "CTE_S", "Elemento no encontrado en la lista", 0, 0);
-        insertarTS("vacia", "CTE_S", "La lista esta vacia", 0, 0); */
         generarAssembler();
         guardarTS();
         printf("Regla 0\n");
